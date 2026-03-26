@@ -1,0 +1,16 @@
+[
+  {
+    "id": "1",
+    "title": "Bài 1: Biến và Kiểu dữ liệu",
+    "content": "Trong Dart, bạn dùng var, String, int để khai báo biến...",
+    "codeSample": "void main() {\n  var name = \"Code App\";\n  print(name);\n}",
+    "expectedOutput": "Code App",
+    "quiz": [
+      {
+        "questionText": "Kiểu dữ liệu nào dùng cho văn bản?",
+        "options": ["int", "bool", "String", "double"],
+        "correctAnswerIndex": 2
+      }
+    ]
+  }
+]
