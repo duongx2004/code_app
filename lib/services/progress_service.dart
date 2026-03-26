@@ -33,4 +33,12 @@ class ProgressService extends ChangeNotifier {
     if (totalLessons == 0) return 0;
     return _completedLessonIds.length / totalLessons;
   }
+
+  // Reset bài học
+  Future<void> resetProgress() async {
+    _completedLessonIds.clear();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('completed_lessons');
+    notifyListeners();
+  }
 }
