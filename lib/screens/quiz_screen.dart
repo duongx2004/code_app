@@ -18,7 +18,6 @@ class _QuizScreenState extends State<QuizScreen> {
   void checkAnswer(int selectedIndex) {
     bool isCorrect = selectedIndex == widget.lesson.quiz[currentQuestionIndex].correctAnswerIndex;
 
-    // Hiển thị thông báo đúng/sai nhanh
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
@@ -35,7 +34,6 @@ class _QuizScreenState extends State<QuizScreen> {
       score++;
     }
 
-    // Đợi SnackBar hiện xong một chút rồi mới chuyển câu
     Future.delayed(const Duration(milliseconds: 700), () {
       if (!mounted) return;
       if (currentQuestionIndex < widget.lesson.quiz.length - 1) {
@@ -49,6 +47,10 @@ class _QuizScreenState extends State<QuizScreen> {
   }
 
   void showResult() {
+    if (score == widget.lesson.quiz.length) {
+      Provider.of<ProgressService>(context, listen: false).markAsCompleted(widget.lesson.id);
+    }
+
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -75,8 +77,8 @@ class _QuizScreenState extends State<QuizScreen> {
           Center(
             child: ElevatedButton(
               onPressed: () {
-                Navigator.pop(context); // Đóng Dialog
-                Navigator.pop(context); // Quay lại bài học
+                Navigator.pop(context);
+                Navigator.pop(context);
               },
               style: ElevatedButton.styleFrom(backgroundColor: Colors.blueAccent, foregroundColor: Colors.white),
               child: const Text("Hoàn thành"),
@@ -85,20 +87,6 @@ class _QuizScreenState extends State<QuizScreen> {
         ],
       ),
     );
-    void showResult() {
-      // Nếu trả lời đúng hết (hoặc trên 80%), đánh dấu hoàn thành
-      if (score == widget.lesson.quiz.length) {
-        Provider.of<ProgressService>(context, listen: false).markAsCompleted(widget.lesson.id);
-      }
-
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) => AlertDialog(
-          // ... (giữ nguyên phần UI Dialog cũ)
-        ),
-      );
-    }
   }
 
   @override
@@ -116,7 +104,6 @@ class _QuizScreenState extends State<QuizScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Thanh tiến độ
             LinearProgressIndicator(
               value: progress,
               backgroundColor: Colors.grey[200],
@@ -124,7 +111,6 @@ class _QuizScreenState extends State<QuizScreen> {
               minHeight: 8,
             ),
             const SizedBox(height: 20),
-
             Text(
                 "Câu hỏi ${currentQuestionIndex + 1} trên ${widget.lesson.quiz.length}:",
                 style: TextStyle(color: Colors.grey[600], fontSize: 14)
@@ -135,8 +121,6 @@ class _QuizScreenState extends State<QuizScreen> {
                 style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)
             ),
             const SizedBox(height: 30),
-
-            // Danh sách các lựa chọn
             Expanded(
               child: ListView.builder(
                 itemCount: question.options.length,

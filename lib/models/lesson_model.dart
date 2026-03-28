@@ -18,7 +18,6 @@ class Lesson {
   });
 
   factory Lesson.fromJson(Map<String, dynamic> json) {
-    // Chuyển danh sách quiz từ JSON thành danh sách Object Question
     var quizList = json['quiz'] as List;
     List<Question> quizObjects = quizList.map((q) => Question.fromJson(q)).toList();
 
@@ -28,7 +27,7 @@ class Lesson {
       content: json['content'],
       codeSample: json['codeSample'],
       expectedOutput: json['expectedOutput'],
-      quiz: quizObjects, // Gán danh sách đã chuyển đổi vào đây
+      quiz: quizObjects,
     );
   }
 }

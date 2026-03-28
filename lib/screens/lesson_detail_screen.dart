@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:code_app/models/models.dart';
 import 'package:code_app/screens/quiz_screen.dart';
-import 'package:code_app/widgets/code_view.dart'; // Import Widget mới
+import 'package:code_app/widgets/code_view.dart';
 
 class LessonDetailScreen extends StatefulWidget {
   final Lesson lesson;
@@ -19,12 +19,11 @@ class _LessonDetailScreenState extends State<LessonDetailScreen> {
   void runCode() {
     setState(() {
       isCodeRunning = true;
-      output = ""; // Xóa kết quả cũ trước khi chạy lại
+      output = "";
     });
 
-    // Giả lập thời gian chạy code 1 giây
     Future.delayed(const Duration(seconds: 1), () {
-      if (mounted) { // Kiểm tra nếu user chưa thoát màn hình
+      if (mounted) {
         setState(() {
           output = widget.lesson.expectedOutput;
           isCodeRunning = false;
@@ -45,7 +44,6 @@ class _LessonDetailScreenState extends State<LessonDetailScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 1. Phần Lý thuyết
             const Row(
               children: [
                 Icon(Icons.book, color: Colors.blue),
@@ -65,10 +63,7 @@ class _LessonDetailScreenState extends State<LessonDetailScreen> {
                 style: const TextStyle(fontSize: 16, height: 1.5),
               ),
             ),
-
             const SizedBox(height: 24),
-
-            // 2. Phần Code mẫu (Sử dụng CodeView đã nâng cấp)
             const Row(
               children: [
                 Icon(Icons.code, color: Colors.orange),
@@ -77,13 +72,8 @@ class _LessonDetailScreenState extends State<LessonDetailScreen> {
               ],
             ),
             const SizedBox(height: 12),
-
-            // Thay thế Container cũ bằng CodeView chuyên nghiệp
             CodeView(code: widget.lesson.codeSample),
-
             const SizedBox(height: 16),
-
-            // 3. Khu vực Console / Kết quả
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -106,7 +96,6 @@ class _LessonDetailScreenState extends State<LessonDetailScreen> {
                   )
               ],
             ),
-
             if (output.isNotEmpty) ...[
               const SizedBox(height: 12),
               const Text("Console Output:", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
@@ -123,10 +112,7 @@ class _LessonDetailScreenState extends State<LessonDetailScreen> {
                 ),
               ),
             ],
-
             const SizedBox(height: 40),
-
-            // 4. Nút chuyển sang Quiz
             SizedBox(
               width: double.infinity,
               height: 55,

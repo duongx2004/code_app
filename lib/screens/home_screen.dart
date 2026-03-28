@@ -22,7 +22,6 @@ class HomeScreen extends StatelessWidget {
           )
         ],
       ),
-      // PHẦN THIẾU CỦA BẠN NẰM Ở ĐÂY:
       body: FutureBuilder<List<Lesson>>(
         future: DataService.loadLessons(),
         builder: (context, snapshot) {
@@ -41,10 +40,7 @@ class HomeScreen extends StatelessWidget {
 
           return Column(
             children: [
-              // Gọi hàm vẽ thanh tiến độ
               _buildProgressHeader(overallProgress),
-
-              // Hiển thị danh sách bài học
               Expanded(
                 child: ListView.builder(
                   padding: const EdgeInsets.all(16),
@@ -63,7 +59,6 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  // Hàm hiển thị Dialog xác nhận xóa tiến độ
   void _showResetDialog(BuildContext context, ProgressService progressService) {
     showDialog(
       context: context,

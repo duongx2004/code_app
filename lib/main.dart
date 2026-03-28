@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:code_app/screens/home_screen.dart';
-import 'package:code_app/screens/playground_screen.dart'; // Import mới
+import 'package:code_app/screens/playground_screen.dart';
 import 'package:code_app/services/progress_service.dart';
 
 void main() {
@@ -22,12 +22,11 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: ThemeData(useMaterial3: true, colorSchemeSeed: Colors.blue),
-      home: const MainNavigation(), // Đổi HomeScreen thành MainNavigation
+      home: const MainNavigation(),
     );
   }
 }
 
-// Widget mới để quản lý Bottom Bar
 class MainNavigation extends StatefulWidget {
   const MainNavigation({super.key});
 
@@ -37,9 +36,9 @@ class MainNavigation extends StatefulWidget {
 
 class _MainNavigationState extends State<MainNavigation> {
   int _currentIndex = 0;
-  final List<Widget> _screens = [
-    const HomeScreen(),
-    const PlaygroundScreen(),
+  final List<Widget> _screens = const [
+    HomeScreen(),
+    PlaygroundScreen(),
   ];
 
   @override

@@ -5,24 +5,20 @@ class ProgressService extends ChangeNotifier {
   List<String> _completedLessonIds = [];
 
   ProgressService() {
-    _loadFromPrefs(); // Load dữ liệu ngay khi khởi tạo
+    _loadFromPrefs();
   }
 
   List<String> get completedLessonIds => _completedLessonIds;
 
-  // Lưu vào máy
   Future<void> markAsCompleted(String lessonId) async {
     if (!_completedLessonIds.contains(lessonId)) {
       _completedLessonIds.add(lessonId);
-
       final prefs = await SharedPreferences.getInstance();
       await prefs.setStringList('completed_lessons', _completedLessonIds);
-
       notifyListeners();
     }
   }
 
-  // Đọc từ máy lên
   Future<void> _loadFromPrefs() async {
     final prefs = await SharedPreferences.getInstance();
     _completedLessonIds = prefs.getStringList('completed_lessons') ?? [];
@@ -34,7 +30,6 @@ class ProgressService extends ChangeNotifier {
     return _completedLessonIds.length / totalLessons;
   }
 
-  // Reset bài học
   Future<void> resetProgress() async {
     _completedLessonIds.clear();
     final prefs = await SharedPreferences.getInstance();
