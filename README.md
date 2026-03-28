@@ -33,3 +33,6 @@ Một ứng dụng di động được xây dựng bằng Flutter, giúp ngườ
    ```bash
    git clone https://github.com/duongx2004/code_app.git
    cd code_app
+2. **Chạy dự án**
+   ```bash
+   flutter pub get
