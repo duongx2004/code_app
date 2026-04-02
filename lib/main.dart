@@ -10,7 +10,14 @@ import 'package:code_app/screens/profile/edit_profile_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(const MyApp());
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => ProgressService()),
+      ],
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -32,10 +39,7 @@ class MyApp extends StatelessWidget {
       initialRoute: '/',
       routes: {
         '/': (context) => const AuthWrapper(),
-        '/home': (context) => ChangeNotifierProvider(
-          create: (context) => ProgressService(),
-          child: const MainNavigation(),
-        ),
+        '/home': (context) => const MainNavigation(),
         '/login': (context) => const LoginScreen(),
         '/register': (context) => const RegisterScreen(),
       },
@@ -54,11 +58,13 @@ class AuthWrapper extends StatelessWidget {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(body: Center(child: CircularProgressIndicator()));
         }
+        
         if (snapshot.data == true) {
-          return ChangeNotifierProvider(
-            create: (context) => ProgressService(),
-            child: const MainNavigation(),
-          );
+          // Khi người dùng đăng nhập thành công, làm mới ProgressService để tải dữ liệu của user đó
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            Provider.of<ProgressService>(context, listen: false).init();
+          });
+          return const MainNavigation();
         } else {
           return const LoginScreen();
         }

@@ -18,6 +18,7 @@ class _QuizScreenState extends State<QuizScreen> {
   void checkAnswer(int selectedIndex) {
     bool isCorrect = selectedIndex == widget.lesson.quiz[currentQuestionIndex].correctAnswerIndex;
 
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
@@ -47,9 +48,9 @@ class _QuizScreenState extends State<QuizScreen> {
   }
 
   void showResult() {
-    if (score == widget.lesson.quiz.length) {
-      Provider.of<ProgressService>(context, listen: false).markAsCompleted(widget.lesson.id);
-    }
+    // Cập nhật tiến độ: Cho phép hoàn thành nếu đạt trên 50% hoặc tùy bạn chỉnh
+    // Ở đây tôi để là hoàn thành khi kết thúc quiz để khích lệ người học
+    Provider.of<ProgressService>(context, listen: false).markAsCompleted(widget.lesson.id);
 
     showDialog(
       context: context,
@@ -77,11 +78,15 @@ class _QuizScreenState extends State<QuizScreen> {
           Center(
             child: ElevatedButton(
               onPressed: () {
-                Navigator.pop(context);
-                Navigator.pop(context);
+                Navigator.pop(context); // Đóng Dialog
+                Navigator.pop(context); // Quay lại trang chi tiết bài học
               },
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.blueAccent, foregroundColor: Colors.white),
-              child: const Text("Hoàn thành"),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blueAccent, 
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 10),
+              ),
+              child: const Text("Xác nhận"),
             ),
           ),
         ],
@@ -91,12 +96,16 @@ class _QuizScreenState extends State<QuizScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (widget.lesson.quiz.isEmpty) {
+      return const Scaffold(body: Center(child: Text("Không có câu hỏi trắc nghiệm.")));
+    }
+    
     final question = widget.lesson.quiz[currentQuestionIndex];
     double progress = (currentQuestionIndex + 1) / widget.lesson.quiz.length;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Kiểm tra"),
+        title: Text(widget.lesson.title),
         elevation: 0,
       ),
       body: Padding(
@@ -112,13 +121,13 @@ class _QuizScreenState extends State<QuizScreen> {
             ),
             const SizedBox(height: 20),
             Text(
-                "Câu hỏi ${currentQuestionIndex + 1} trên ${widget.lesson.quiz.length}:",
+                "Câu hỏi ${currentQuestionIndex + 1} / ${widget.lesson.quiz.length}:",
                 style: TextStyle(color: Colors.grey[600], fontSize: 14)
             ),
             const SizedBox(height: 10),
             Text(
                 question.questionText,
-                style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)
+                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)
             ),
             const SizedBox(height: 30),
             Expanded(
@@ -130,9 +139,10 @@ class _QuizScreenState extends State<QuizScreen> {
                     child: OutlinedButton(
                       onPressed: () => checkAnswer(index),
                       style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 15),
-                        side: const BorderSide(color: Colors.blueAccent),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 15),
+                        side: const BorderSide(color: Colors.blueAccent, width: 1.5),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        alignment: Alignment.centerLeft,
                       ),
                       child: Text(
                         question.options[index],
