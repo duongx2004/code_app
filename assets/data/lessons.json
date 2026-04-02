@@ -68,5 +68,47 @@
         "correctAnswerIndex": 2
       }
     ]
+  },
+  {
+    "id": "6",
+    "title": "Bài 6: Map (Từ điển)",
+    "content": "Map là một tập hợp các cặp khóa-giá trị (key-value). Mỗi khóa trong Map là duy nhất và dùng để truy xuất giá trị tương ứng.",
+    "codeSample": "void main() {\n  var scores = {'Toán': 9, 'Văn': 8};\n  scores['Anh'] = 10;\n  print(scores['Toán']);\n  print(scores.length);\n}",
+    "expectedOutput": "9\n3",
+    "quiz": [
+      {
+        "questionText": "Trong Map {'A': 1}, 'A' được gọi là gì?",
+        "options": ["Value", "Key", "Index", "List"],
+        "correctAnswerIndex": 1
+      }
+    ]
+  },
+  {
+    "id": "7",
+    "title": "Bài 7: Hướng đối tượng (Class)",
+    "content": "Class là khuôn mẫu để tạo ra các đối tượng (Object). Nó bao gồm các thuộc tính và phương thức.",
+    "codeSample": "class Person {\n  String name = 'User';\n  void sayHi() => print('Chào $name');\n}\n\nvoid main() {\n  var p = Person();\n  p.sayHi();\n}",
+    "expectedOutput": "Chào User",
+    "quiz": [
+      {
+        "questionText": "Từ khóa nào dùng để tạo một lớp mới?",
+        "options": ["object", "new", "class", "void"],
+        "correctAnswerIndex": 2
+      }
+    ]
+  },
+  {
+    "id": "8",
+    "title": "Bài 8: Xử lý lỗi (Try-Catch)",
+    "content": "Try-Catch giúp chương trình không bị 'văng' khi gặp lỗi bất ngờ. Bạn 'thử' (try) một đoạn code và 'bắt' (catch) lỗi nếu có.",
+    "codeSample": "void main() {\n  try {\n    int result = 10 ~/ 0;\n    print(result);\n  } catch (e) {\n    print('Có lỗi xảy ra!');\n  }\n}",
+    "expectedOutput": "Có lỗi xảy ra!",
+    "quiz": [
+      {
+        "questionText": "Khối lệnh nào luôn được thực thi dù có lỗi hay không?",
+        "options": ["try", "catch", "finally", "throw"],
+        "correctAnswerIndex": 2
+      }
+    ]
   }
 ]

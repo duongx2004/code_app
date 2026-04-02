@@ -14,19 +14,21 @@ class Lesson {
     required this.content,
     required this.codeSample,
     required this.expectedOutput,
-    required this.quiz
+    required this.quiz,
   });
 
   factory Lesson.fromJson(Map<String, dynamic> json) {
-    var quizList = json['quiz'] as List;
-    List<Question> quizObjects = quizList.map((q) => Question.fromJson(q)).toList();
+    final quizList = json['quiz'] as List? ?? [];
+
+    List<Question> quizObjects =
+    quizList.map((q) => Question.fromJson(q)).toList();
 
     return Lesson(
-      id: json['id'],
-      title: json['title'],
-      content: json['content'],
-      codeSample: json['codeSample'],
-      expectedOutput: json['expectedOutput'],
+      id: json['id'] as String,
+      title: json['title'] as String,
+      content: json['content'] as String,
+      codeSample: json['codeSample'] as String,
+      expectedOutput: json['expectedOutput'] as String,
       quiz: quizObjects,
     );
   }
