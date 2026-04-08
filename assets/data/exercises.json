@@ -1,0 +1,110 @@
+[
+  {
+    "id": "ex1",
+    "title": "Tính tổng các chữ số",
+    "description": "Viết chương trình tính tổng các chữ số trong một số nguyên dương.\n\nVí dụ: Với số 123, các chữ số là 1, 2, 3, nên tổng là 1 + 2 + 3 = 6\n\nGợi ý:\n- Dùng vòng lặp để lấy từng chữ số\n- Dùng phép toán modulo (%) để lấy chữ số cuối cùng\n- Dùng phép chia nguyên (~/) để loại bỏ chữ số cuối",
+    "input": "Một dòng chứa một số nguyên dương n (1 ≤ n ≤ 100000)",
+    "output": "In ra tổng các chữ số của số n",
+    "difficulty": "cơ bản",
+    "time_limit": 30,
+    "hint": "void main() {\n  int n = int.parse(readLineSync()!);\n  int sum = 0;\n  while (n > 0) {\n    sum += n % 10;\n    n ~/= 10;\n  }\n  print(sum);\n}",
+    "test_cases": [
+      {
+        "input": "123",
+        "output": "6"
+      },
+      {
+        "input": "456",
+        "output": "15"
+      },
+      {
+        "input": "9999",
+        "output": "36"
+      }
+    ]
+  },
+  {
+    "id": "ex2",
+    "title": "In hình tam giác sao",
+    "description": "Viết chương trình in ra hình tam giác sao (*) với n dòng.\n\nVí dụ: Với n=3, kết quả là:\n*\n**\n***\n\nLưu ý: Mỗi dòng có số sao bằng số thứ tự dòng đó",
+    "input": "Một số nguyên n (1 ≤ n ≤ 10)",
+    "output": "In ra hình tam giác sao, mỗi dòng trên một dòng",
+    "difficulty": "cơ bản",
+    "time_limit": 30,
+    "hint": "import 'dart:io';\n\nvoid main() {\n  int n = int.parse(stdin.readLineSync()!);\n  for (int i = 1; i <= n; i++) {\n    for (int j = 0; j < i; j++) {\n      stdout.write('*');\n    }\n    print('');\n  }\n}\n\n// Hoặc cách khác không cần import:\nvoid main() {\n  int n = int.parse(readLineSync()!);\n  for (int i = 1; i <= n; i++) {\n    print('*' * i);\n  }\n}",
+    "test_cases": [
+      {
+        "input": "3",
+        "output": "*\n**\n***"
+      },
+      {
+        "input": "5",
+        "output": "*\n**\n***\n****\n*****"
+      }
+    ]
+  },
+  {
+    "id": "ex3",
+    "title": "Kiểm tra số chẵn lẻ",
+    "description": "Viết chương trình kiểm tra một số nguyên có phải số chẵn hay không.\n\nNếu là số chẵn, in ra 'Chẵn', nếu là số lẻ in ra 'Lẻ'",
+    "input": "Một số nguyên n",
+    "output": "In ra 'Chẵn' hoặc 'Lẻ'",
+    "difficulty": "cơ bản",
+    "time_limit": 30,
+    "hint": "void main() {\n  int n = int.parse(readLineSync()!);\n  if (n % 2 == 0) {\n    print('Chẵn');\n  } else {\n    print('Lẻ');\n  }\n}",
+    "test_cases": [
+      {
+        "input": "4",
+        "output": "Chẵn"
+      },
+      {
+        "input": "7",
+        "output": "Lẻ"
+      },
+      {
+        "input": "100",
+        "output": "Chẵn"
+      }
+    ]
+  },
+  {
+    "id": "ex4",
+    "title": "Tìm số lớn nhất trong 3 số",
+    "description": "Viết chương trình nhận vào 3 số nguyên và in ra số lớn nhất trong 3 số đó.",
+    "input": "Ba dòng, mỗi dòng chứa một số nguyên",
+    "output": "In ra số lớn nhất",
+    "difficulty": "cơ bản",
+    "time_limit": 30,
+    "hint": "void main() {\n  int a = int.parse(readLineSync()!);\n  int b = int.parse(readLineSync()!);\n  int c = int.parse(readLineSync()!);\n  int max = a;\n  if (b > max) max = b;\n  if (c > max) max = c;\n  print(max);\n}",
+    "test_cases": [
+      {
+        "input": "10\\n20\\n15",
+        "output": "20"
+      },
+      {
+        "input": "5\\n3\\n8",
+        "output": "8"
+      }
+    ]
+  },
+  {
+    "id": "ex5",
+    "title": "Tính giai thừa",
+    "description": "Viết chương trình tính giai thừa của một số nguyên dương n.\n\nGiai thừa n! = 1 × 2 × 3 × ... × n\nVí dụ: 5! = 1 × 2 × 3 × 4 × 5 = 120",
+    "input": "Một số nguyên dương n (n ≤ 20)",
+    "output": "In ra giai thừa của n",
+    "difficulty": "trung bình",
+    "time_limit": 30,
+    "hint": "void main() {\n  int n = int.parse(readLineSync()!);\n  int factorial = 1;\n  for (int i = 1; i <= n; i++) {\n    factorial *= i;\n  }\n  print(factorial);\n}",
+    "test_cases": [
+      {
+        "input": "5",
+        "output": "120"
+      },
+      {
+        "input": "1",
+        "output": "1"
+      }
+    ]
+  }
+]

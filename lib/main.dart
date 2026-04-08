@@ -4,6 +4,7 @@ import 'package:code_app/services/progress_service.dart';
 import 'package:code_app/services/auth_service.dart';
 import 'package:code_app/screens/home_screen.dart';
 import 'package:code_app/screens/playground_screen.dart';
+import 'package:code_app/screens/exercise_screen.dart';
 import 'package:code_app/screens/auth/login_screen.dart';
 import 'package:code_app/screens/auth/register_screen.dart';
 import 'package:code_app/screens/profile/edit_profile_screen.dart';
@@ -85,6 +86,7 @@ class _MainNavigationState extends State<MainNavigation> {
   String? _displayName;
   final List<Widget> _screens = const [
     HomeScreen(),
+    ExerciseScreen(),
     PlaygroundScreen(),
   ];
 
@@ -195,6 +197,7 @@ class _MainNavigationState extends State<MainNavigation> {
         currentIndex: _currentIndex,
         onTap: (index) => setState(() => _currentIndex = index),
         items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.assignment), label: "Bài tập"),
           BottomNavigationBarItem(icon: Icon(Icons.school), label: "Học tập"),
           BottomNavigationBarItem(icon: Icon(Icons.code), label: "Playground"),
         ],
