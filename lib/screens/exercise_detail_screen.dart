@@ -71,14 +71,18 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
         bool passed = _checkTestCase(code, testCase);
         results.add(passed);
         if (passed) passedTestsCount++;
+      } else {
+        results.add(false);
       }
     }
+
+    final builtOutput = _buildOutputText(results, passedTestsCount);
 
     setState(() {
       testResults = results;
       passedTests = passedTestsCount;
       isRunning = false;
-      _buildOutput();
+      output = builtOutput;
     });
 
     if (passedTests == totalTests) {
@@ -247,12 +251,12 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
     }
   }
 
-  void _buildOutput() {
+  String _buildOutputText(List<bool> results, int passed) {
     StringBuffer sb = StringBuffer();
-    sb.writeln('📊 Kết quả kiểm tra: $passedTests/$totalTests test passed\n');
+    sb.writeln('📊 Kết quả kiểm tra: $passed/$totalTests test passed\n');
 
-    for (int i = 0; i < testResults.length; i++) {
-      final result = testResults[i];
+    for (int i = 0; i < results.length; i++) {
+      final result = results[i];
       final test = widget.exercise.testCases[i];
       sb.writeln(result ? '✅ Test ${i + 1}: PASSED' : '❌ Test ${i + 1}: FAILED');
       sb.writeln('   Input: ${test.input}');
@@ -260,9 +264,126 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
       sb.writeln('');
     }
 
-    setState(() {
-      output = sb.toString();
-    });
+    return sb.toString();
+  }
+
+  Widget _buildSectionHeader({
+    required IconData icon,
+    required Color color,
+    required String title,
+  }) {
+    return Row(
+      children: [
+        Icon(icon, color: color, size: 20),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            title,
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildInfoCard({
+    required String label,
+    required String content,
+    required Color color,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withOpacity(0.3)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              color: color,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            content,
+            style: const TextStyle(fontSize: 13, height: 1.4),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTestCaseCard(int index, TestCase test) {
+    final hasResult = index < testResults.length;
+    final passed = hasResult ? testResults[index] : null;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: passed == null
+              ? Colors.grey.shade300
+              : (passed ? Colors.green.shade300 : Colors.red.shade300),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  'Test ${index + 1}',
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+              if (passed != null)
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color:
+                        passed ? Colors.green.shade50 : Colors.red.shade50,
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Text(
+                    passed ? 'PASSED' : 'FAILED',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: passed ? Colors.green.shade700 : Colors.red.shade700,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Input: ${test.input}',
+            style: const TextStyle(fontSize: 12, color: Colors.black87),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Output: ${test.expectedOutput}',
+            style: const TextStyle(fontSize: 12, color: Colors.black87),
+          ),
+        ],
+      ),
+    );
   }
 
   void _showHint() {
@@ -311,206 +432,240 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final width = MediaQuery.sizeOf(context).width;
+    final isCompact = width < 380;
+    final isWide = width >= 700;
+
     return Scaffold(
+      backgroundColor: const Color(0xFFF6F8FC),
       appBar: AppBar(
         title: Text(widget.exercise.title),
         elevation: 0,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Mô tả bài tập
-            const Row(
-              children: [
-                Icon(Icons.description, color: Colors.blue),
-                SizedBox(width: 8),
-                Text(
-                  'Mô tả bài tập',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.blue.withOpacity(0.05),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.blue.withOpacity(0.2)),
-              ),
-              child: Text(
-                widget.exercise.description,
-                style: const TextStyle(fontSize: 14, height: 1.6),
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // Input/Output
-            Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Input',
-                        style: TextStyle(
-                            fontSize: 14, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        widget.exercise.inputFormat,
-                        style: const TextStyle(fontSize: 12, color: Colors.grey),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Output',
-                        style: TextStyle(
-                            fontSize: 14, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        widget.exercise.outputFormat,
-                        style: const TextStyle(fontSize: 12, color: Colors.grey),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-
-            // Test cases
-            const Row(
-              children: [
-                Icon(Icons.checklist, color: Colors.orange),
-                SizedBox(width: 8),
-                Text(
-                  'Test Cases',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            ...List.generate(widget.exercise.testCases.length, (index) {
-              final test = widget.exercise.testCases[index];
-              return Container(
-                margin: const EdgeInsets.only(bottom: 8),
-                padding: const EdgeInsets.all(10),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 12),
+            child: Center(
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
-                  color: Colors.grey[100],
-                  borderRadius: BorderRadius.circular(6),
-                  border: Border.all(color: Colors.grey[300]!),
+                  color: Colors.white.withOpacity(0.18),
+                  borderRadius: BorderRadius.circular(999),
+                  border: Border.all(color: Colors.white.withOpacity(0.25)),
                 ),
+                child: Text(
+                  widget.exercise.difficulty,
+                  style: const TextStyle(fontSize: 12),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+      body: SafeArea(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final horizontalPadding = isWide ? 24.0 : 14.0;
+            return SingleChildScrollView(
+              padding: EdgeInsets.fromLTRB(
+                horizontalPadding,
+                14,
+                horizontalPadding,
+                20,
+              ),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minHeight: constraints.maxHeight - 20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Test ${index + 1}:',
-                      style: const TextStyle(
-                          fontSize: 12, fontWeight: FontWeight.bold),
+                    _buildSectionHeader(
+                      icon: Icons.description_outlined,
+                      color: Colors.blue,
+                      title: 'Mô tả bài tập',
                     ),
-                    Text('Input: ${test.input}', style: const TextStyle(fontSize: 11)),
-                    Text('Output: ${test.expectedOutput}',
-                        style: const TextStyle(fontSize: 11)),
+                    const SizedBox(height: 10),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFFEAF3FF), Color(0xFFF6F9FF)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: const Color(0xFFBFD8FF)),
+                      ),
+                      child: Text(
+                        widget.exercise.description,
+                        style: const TextStyle(fontSize: 14, height: 1.55),
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    if (isWide)
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: _buildInfoCard(
+                              label: 'Input',
+                              content: widget.exercise.inputFormat,
+                              color: Colors.teal,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: _buildInfoCard(
+                              label: 'Output',
+                              content: widget.exercise.outputFormat,
+                              color: Colors.deepOrange,
+                            ),
+                          ),
+                        ],
+                      )
+                    else ...[
+                      _buildInfoCard(
+                        label: 'Input',
+                        content: widget.exercise.inputFormat,
+                        color: Colors.teal,
+                      ),
+                      const SizedBox(height: 10),
+                      _buildInfoCard(
+                        label: 'Output',
+                        content: widget.exercise.outputFormat,
+                        color: Colors.deepOrange,
+                      ),
+                    ],
+                    const SizedBox(height: 16),
+                    _buildSectionHeader(
+                      icon: Icons.checklist_rounded,
+                      color: Colors.orange,
+                      title: 'Test Cases',
+                    ),
+                    const SizedBox(height: 10),
+                    ...List.generate(widget.exercise.testCases.length, (index) {
+                      final test = widget.exercise.testCases[index];
+                      return _buildTestCaseCard(index, test);
+                    }),
+                    const SizedBox(height: 16),
+                    _buildSectionHeader(
+                      icon: Icons.code,
+                      color: Colors.green,
+                      title: 'Nhập code Dart của bạn',
+                    ),
+                    const SizedBox(height: 10),
+                    CodeEditorWidget(
+                      controller: codeController,
+                      minLines: 9,
+                      maxLines: 16,
+                    ),
+                    const SizedBox(height: 14),
+                    if (isCompact)
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          ElevatedButton.icon(
+                            onPressed: isRunning ? null : runCode,
+                            icon: isRunning
+                                ? const SizedBox(
+                                    width: 16,
+                                    height: 16,
+                                    child: CircularProgressIndicator(strokeWidth: 2),
+                                  )
+                                : const Icon(Icons.play_arrow),
+                            label: Text(isRunning ? 'Đang chạy...' : 'Chạy code'),
+                            style: ElevatedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              backgroundColor: const Color(0xFF2563EB),
+                              foregroundColor: Colors.white,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          OutlinedButton.icon(
+                            onPressed: _showHint,
+                            icon: const Icon(Icons.lightbulb_outline),
+                            label: const Text('Xem gợi ý'),
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                            ),
+                          ),
+                        ],
+                      )
+                    else
+                      Row(
+                        children: [
+                          Expanded(
+                            child: ElevatedButton.icon(
+                              onPressed: isRunning ? null : runCode,
+                              icon: isRunning
+                                  ? const SizedBox(
+                                      width: 16,
+                                      height: 16,
+                                      child: CircularProgressIndicator(strokeWidth: 2),
+                                    )
+                                  : const Icon(Icons.play_arrow),
+                              label: Text(isRunning ? 'Đang chạy...' : 'Chạy code'),
+                              style: ElevatedButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(vertical: 14),
+                                backgroundColor: const Color(0xFF2563EB),
+                                foregroundColor: Colors.white,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          OutlinedButton.icon(
+                            onPressed: _showHint,
+                            icon: const Icon(Icons.lightbulb_outline),
+                            label: const Text('Gợi ý'),
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 14,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    const SizedBox(height: 16),
+                    if (output.isNotEmpty) ...[
+                      _buildSectionHeader(
+                        icon: Icons.terminal,
+                        color: Colors.purple,
+                        title: 'Kết quả chạy',
+                      ),
+                      const SizedBox(height: 8),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF111827),
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.08),
+                              blurRadius: 8,
+                              offset: const Offset(0, 3),
+                            ),
+                          ],
+                        ),
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: SelectableText(
+                            output,
+                            style: const TextStyle(
+                              color: Color(0xFF86EFAC),
+                              fontFamily: 'Courier',
+                              fontSize: 12,
+                              height: 1.4,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ],
                 ),
-              );
-            }),
-            const SizedBox(height: 20),
-
-            // Code editor
-            const Row(
-              children: [
-                Icon(Icons.code, color: Colors.green),
-                SizedBox(width: 8),
-                Text(
-                  'Nhập code Dart của bạn',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Container(
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey[300]!),
-                borderRadius: BorderRadius.circular(8),
               ),
-              child: TextField(
-                controller: codeController,
-                maxLines: 12,
-                minLines: 8,
-                style: const TextStyle(
-                  fontFamily: 'Courier',
-                  fontSize: 13,
-                ),
-                decoration: InputDecoration(
-                  hintText: 'void main() {\n  // Viết code của bạn ở đây\n}',
-                  border: InputBorder.none,
-                  contentPadding: const EdgeInsets.all(12),
-                  filled: true,
-                  fillColor: Colors.grey[50],
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-
-            // Buttons
-            Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: isRunning ? null : runCode,
-                    icon: isRunning
-                        ? const SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Icon(Icons.play_arrow),
-                    label: Text(isRunning ? 'Đang chạy...' : 'Chạy code'),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                ElevatedButton.icon(
-                  onPressed: _showHint,
-                  icon: const Icon(Icons.lightbulb_outline),
-                  label: const Text('Gợi ý'),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-
-            // Output
-            if (output.isNotEmpty)
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.grey[900],
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: SingleChildScrollView(
-                  child: Text(
-                    output,
-                    style: const TextStyle(
-                      color: Colors.green,
-                      fontFamily: 'Courier',
-                      fontSize: 12,
-                    ),
-                  ),
-                ),
-              ),
-            const SizedBox(height: 20),
-          ],
+            );
+          },
         ),
       ),
     );

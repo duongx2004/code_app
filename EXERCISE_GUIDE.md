@@ -167,6 +167,6 @@ Nếu bài tập không load:
 3. Xem console log có error gì không
 
 ---
-**Tác giả**: AI Assistant
+**Tác giả**: nhuan
 **Ngày tạo**: 2026-04-07
 **Phiên bản**: 1.0
