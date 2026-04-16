@@ -2,14 +2,27 @@
   {
     "id": "1",
     "title": "Bài 1: Biến và Kiểu dữ liệu",
-    "content": "Trong Dart, mọi thứ đều là Object. Bạn sử dụng 'var' để Dart tự suy luận kiểu, hoặc chỉ định rõ như 'String', 'int', 'double', 'bool'.",
-    "codeSample": "void main() {\n  String name = \"Flutter\";\n  int year = 2024;\n  print(\"$name ra đời năm $year\");\n}",
+    "content": "Trong Dart, mọi thứ đều là Object.\n\nCác kiểu dữ liệu cơ bản:\n- int: số nguyên\n- double: số thực\n- String: chuỗi\n- bool: đúng/sai\n\nBạn có thể dùng 'var' để Dart tự suy luận kiểu hoặc khai báo rõ kiểu dữ liệu.",
+
+    "codeSample": "void main() {\n  String name = \"Flutter\";\n  int year = 2024;\n  double version = 3.0;\n  bool isActive = true;\n\n  print(\"$name ra đời năm $year\");\n}",
+
     "expectedOutput": "Flutter ra đời năm 2024",
+
     "quiz": [
       {
         "questionText": "Kiểu dữ liệu nào dùng để lưu giá trị Đúng/Sai?",
         "options": ["int", "String", "bool", "double"],
         "correctAnswerIndex": 2
+      },
+      {
+        "questionText": "Từ khóa nào giúp Dart tự suy luận kiểu?",
+        "options": ["var", "auto", "let", "dynamic"],
+        "correctAnswerIndex": 0
+      },
+      {
+        "questionText": "Kiểu dữ liệu nào dùng để lưu số thực?",
+        "options": ["int", "double", "String", "bool"],
+        "correctAnswerIndex": 1
       }
     ]
   },
