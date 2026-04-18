@@ -46,8 +46,9 @@ class _LoginScreenState extends State<LoginScreen> {
       subtitle: 'Tiếp tục hành trình học Dart với các bài tập và playground đã lưu.',
       badge: 'Chào mừng trở lại',
       icon: Icons.school,
-      footer: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
+      footer: Wrap(
+        alignment: WrapAlignment.center,
+        crossAxisAlignment: WrapCrossAlignment.center,
         children: [
           Text(
             'Chưa có tài khoản? ',
