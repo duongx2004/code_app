@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:code_app/models/exercise_model.dart';
+import 'package:code_app/services/dart_code_runner.dart';
 import 'package:code_app/services/exercise_service.dart';
 import 'package:code_app/widgets/code_editor.dart';
 
@@ -33,7 +34,7 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
     super.dispose();
   }
 
-  void runCode() {
+  Future<void> runCode() async {
     final code = codeController.text.trim();
     if (code.isEmpty) {
       _showSnackBar('Vui lòng nhập code!', Colors.orange);
@@ -47,37 +48,61 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
       passedTests = 0;
     });
 
-    // Mô phỏng chạy code - trong thực tế bạn cần dùng Dart VM hoặc server backend
-    Future.delayed(const Duration(milliseconds: 500), () {
-      if (mounted) {
-        _simulateCodeExecution(code);
-      }
-    });
+    await _executeCode(code);
   }
 
-  void _simulateCodeExecution(String code) {
-    // Đây là mô phỏng - thực tế cần backend để chạy code Dart
-    List<bool> results = [];
-    int passedTestsCount = 0;
+  Future<void> _executeCode(String code) async {
+    final results = <bool>[];
+    var passedTestsCount = 0;
+    String? runtimeError;
 
-    for (var testCase in widget.exercise.testCases) {
-      // Kiểm tra xem code có chứa các keyword cần thiết không
-      bool codeContainsKey = code.contains('void main') ||
-          code.contains('main()') ||
-          code.contains('print');
+    if (!_hasExerciseSpecificLogic(code)) {
+      final failedResults = List<bool>.filled(totalTests, false);
+      final builtOutput = _buildOutputText(
+        failedResults,
+        0,
+        runtimeError: "Code chưa đủ cấu trúc. Kiểm tra: import 'dart:io', stdin.readLineSync(), print(), vòng lặp, và logic bài tập.",
+      );
 
-      if (codeContainsKey) {
-        // Mô phỏng đơn giản - trong thực tế cần chạy code thực
-        bool passed = _checkTestCase(code, testCase);
-        results.add(passed);
-        if (passed) passedTestsCount++;
-      } else {
-        results.add(false);
-      }
+      if (!mounted) return;
+      setState(() {
+        testResults = failedResults;
+        passedTests = 0;
+        isRunning = false;
+        output = builtOutput;
+      });
+
+      _showSnackBar('Chưa đúng cấu trúc bài làm, hãy thử lại!', Colors.red);
+      return;
     }
 
-    final builtOutput = _buildOutputText(results, passedTestsCount);
+    for (var testCase in widget.exercise.testCases) {
+      final executionResult = await DartCodeRunner.runCode(
+        code,
+        input: testCase.input,
+        timeout: Duration(seconds: widget.exercise.timeLimit),
+      );
 
+      runtimeError ??= executionResult.error ??
+          (executionResult.stderr.trim().isNotEmpty
+              ? executionResult.stderr.trim()
+              : (executionResult.timedOut ? 'Code chạy quá thời gian cho phép.' : null));
+
+      final userOutput = executionResult.stdout.trimRight();
+      final passed = !executionResult.hasError &&
+          ExerciseService.compareOutput(userOutput, testCase.expectedOutput);
+
+      results.add(passed);
+      if (passed) passedTestsCount++;
+    }
+
+    final builtOutput = _buildOutputText(
+      results,
+      passedTestsCount,
+      runtimeError: runtimeError,
+    );
+
+    if (!mounted) return;
     setState(() {
       testResults = results;
       passedTests = passedTestsCount;
@@ -96,103 +121,20 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
     }
   }
 
-  bool _checkTestCase(String code, TestCase testCase) {
-    if (!_hasExerciseSpecificLogic(code)) {
-      return false;
-    }
-
-    // Đây là kiểm tra đơn giản dựa trên nội dung code
-    // Trong ứng dụng thực, bạn nên:
-    // 1. Gửi code tới backend
-    // 2. Chạy code trên server với input: testCase.input
-    // 3. So sánh output real với testCase.expectedOutput
-
-    // Kiểm tra đơn giản cho một số bài tập cơ bản
-    if (widget.exercise.id == 'ex1') {
-      // Bài tập tính tổng
-      try {
-        int input = int.parse(testCase.input);
-        int expected = int.parse(testCase.expectedOutput);
-        int sum = 0;
-        while (input > 0) {
-          sum += input % 10;
-          input ~/= 10;
-        }
-        return sum.toString() == testCase.expectedOutput;
-      } catch (e) {
-        return false;
-      }
-    }
-
-    if (widget.exercise.id == 'ex2') {
-      // Bài tập hình tam giác sao
-      try {
-        int n = int.parse(testCase.input);
-        StringBuffer result = StringBuffer();
-        for (int i = 1; i <= n; i++) {
-          result.writeln('*' * i);
-        }
-        String userOutput = result.toString().trimRight();
-        String expectedOutput = testCase.expectedOutput;
-        return userOutput == expectedOutput;
-      } catch (e) {
-        return false;
-      }
-    }
-
-    if (widget.exercise.id == 'ex3') {
-      // Bài tập chẵn/lẻ
-      try {
-        int n = int.parse(testCase.input);
-        String result = (n % 2 == 0) ? 'Chẵn' : 'Lẻ';
-        return result == testCase.expectedOutput;
-      } catch (e) {
-        return false;
-      }
-    }
-
-    if (widget.exercise.id == 'ex4') {
-      // Bài tập tìm max
-      try {
-        List<String> inputLines = testCase.input.split('\\n');
-        if (inputLines.length >= 3) {
-          int a = int.parse(inputLines[0]);
-          int b = int.parse(inputLines[1]);
-          int c = int.parse(inputLines[2]);
-          int max = [a, b, c].reduce((v, e) => v > e ? v : e);
-          return max.toString() == testCase.expectedOutput;
-        }
-      } catch (e) {
-        return false;
-      }
-    }
-
-    if (widget.exercise.id == 'ex5') {
-      // Bài tập giai thừa
-      try {
-        int n = int.parse(testCase.input);
-        int factorial = 1;
-        for (int i = 1; i <= n; i++) {
-          factorial *= i;
-        }
-        return factorial.toString() == testCase.expectedOutput;
-      } catch (e) {
-        return false;
-      }
-    }
-
-    // Mặc định trả về false nếu không có logic kiểm tra
-    return false;
-  }
-
   bool _hasExerciseSpecificLogic(String code) {
     final normalizedCode = code.toLowerCase();
 
-    final hasInput = normalizedCode.contains('readlinesync');
+    // Bắt buộc phải có import dart:io để dùng stdin.readLineSync
+    final hasImport = normalizedCode.contains("import 'dart:io'") ||
+        normalizedCode.contains('import "dart:io"');
+
+    // Phải dùng stdin.readLineSync() hoặc readLineSync() từ stdin
+    final hasInput = normalizedCode.contains('stdin.readlinesync') ||
+        normalizedCode.contains('readlinesync');
     final hasOutput = normalizedCode.contains('print(') ||
         normalizedCode.contains('stdout.write');
 
-    if (!hasInput || !hasOutput) {
+    if (!hasImport || !hasInput || !hasOutput) {
       return false;
     }
 
@@ -251,9 +193,17 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
     }
   }
 
-  String _buildOutputText(List<bool> results, int passed) {
+  String _buildOutputText(
+    List<bool> results,
+    int passed, {
+    String? runtimeError,
+  }) {
     StringBuffer sb = StringBuffer();
     sb.writeln('📊 Kết quả kiểm tra: $passed/$totalTests test passed\n');
+
+    if (runtimeError != null && runtimeError.isNotEmpty) {
+      sb.writeln('⚠️ Thông báo chạy code: $runtimeError\n');
+    }
 
     for (int i = 0; i < results.length; i++) {
       final result = results[i];
@@ -267,121 +217,433 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
     return sb.toString();
   }
 
-  Widget _buildSectionHeader({
-    required IconData icon,
-    required Color color,
-    required String title,
-  }) {
-    return Row(
-      children: [
-        Icon(icon, color: color, size: 20),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Text(
-            title,
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+  Color _difficultyColor() {
+    final normalized = widget.exercise.difficulty.toLowerCase();
+    if (normalized.contains('trung')) {
+      return const Color(0xFFEA8A1A);
+    }
+    if (normalized.contains('nâng')) {
+      return const Color(0xFFDC2626);
+    }
+    return const Color(0xFF16A34A);
+  }
+
+  Widget _buildGlassCard({required Widget child, EdgeInsets? padding}) {
+    return Container(
+      width: double.infinity,
+      padding: padding ?? const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF0F172A).withValues(alpha: 0.06),
+            blurRadius: 6,
+            offset: const Offset(0, 3),
           ),
-        ),
-      ],
+        ],
+        border: Border.all(color: const Color(0xFFE3EAF5)),
+      ),
+      child: child,
     );
   }
 
-  Widget _buildInfoCard({
-    required String label,
-    required String content,
-    required Color color,
-  }) {
+  Widget _buildProblemSection(bool isWide) {
+    return _buildGlassCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            children: [
+              Icon(Icons.description_rounded, size: 18, color: Color(0xFF2563EB)),
+              SizedBox(width: 8),
+              Text(
+                'Mô tả bài tập',
+                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Text(
+            widget.exercise.description,
+            style: const TextStyle(
+              fontSize: 13.5,
+              height: 1.5,
+              color: Color(0xFF1F2A3D),
+            ),
+          ),
+          const SizedBox(height: 14),
+          if (isWide)
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(child: _buildIOMiniCard('Input', widget.exercise.inputFormat)),
+                const SizedBox(width: 10),
+                Expanded(child: _buildIOMiniCard('Output', widget.exercise.outputFormat)),
+              ],
+            )
+          else ...[
+            _buildIOMiniCard('Input', widget.exercise.inputFormat),
+            const SizedBox(height: 8),
+            _buildIOMiniCard('Output', widget.exercise.outputFormat),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildIOMiniCard(String label, String content) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.08),
+        color: const Color(0xFFF8FAFF),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: const Color(0xFFDCE5F5)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             label,
-            style: TextStyle(
-              fontSize: 13,
+            style: const TextStyle(
+              fontSize: 12,
               fontWeight: FontWeight.w700,
-              color: color,
+              color: Color(0xFF31518D),
             ),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 5),
           Text(
             content,
-            style: const TextStyle(fontSize: 13, height: 1.4),
+            style: const TextStyle(fontSize: 12.5, color: Color(0xFF24334D)),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildTestCaseCard(int index, TestCase test) {
-    final hasResult = index < testResults.length;
-    final passed = hasResult ? testResults[index] : null;
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: passed == null
-              ? Colors.grey.shade300
-              : (passed ? Colors.green.shade300 : Colors.red.shade300),
-        ),
+  Widget _buildEditorSection() {
+    return _buildGlassCard(
+      padding: const EdgeInsets.all(14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            children: [
+              Icon(Icons.code_rounded, size: 18, color: Color(0xFF2563EB)),
+              SizedBox(width: 8),
+              Text(
+                'Code của bạn',
+                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color(0xFF0D1B2A),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFF253A55)),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF0B1120).withValues(alpha: 0.24),
+                  blurRadius: 8,
+                  offset: const Offset(0, 3),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    for (final color in const [
+                      Color(0xFFEF4444),
+                      Color(0xFFF59E0B),
+                      Color(0xFF10B981),
+                    ])
+                      Container(
+                        margin: const EdgeInsets.only(right: 6),
+                        width: 8,
+                        height: 8,
+                        decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+                      ),
+                    const Spacer(),
+                    const Text(
+                      'main.dart',
+                      style: TextStyle(
+                        color: Color(0xFF9EB7D6),
+                        fontSize: 11,
+                        fontFamily: 'Courier',
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                CodeEditorWidget(
+                  controller: codeController,
+                  minLines: 10,
+                  maxLines: 18,
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
+    );
+  }
+
+  Widget _buildResultSection() {
+    final passRateText = '$passedTests/$totalTests Passed';
+    final allPassed = passedTests == totalTests && totalTests > 0;
+
+    return _buildGlassCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Expanded(
+              Icon(
+                allPassed ? Icons.verified_rounded : Icons.query_stats_rounded,
+                color: allPassed ? const Color(0xFF16A34A) : const Color(0xFF2563EB),
+                size: 19,
+              ),
+              const SizedBox(width: 8),
+              const Expanded(
                 child: Text(
-                  'Test ${index + 1}',
-                  style: const TextStyle(
-                    fontSize: 13,
+                  'Kết quả chạy',
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                decoration: BoxDecoration(
+                  color: allPassed
+                      ? const Color(0xFFE8F8EE)
+                      : const Color(0xFFE8F0FF),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Text(
+                  passRateText,
+                  style: TextStyle(
+                    color: allPassed ? const Color(0xFF15803D) : const Color(0xFF1D4ED8),
                     fontWeight: FontWeight.w700,
+                    fontSize: 11,
                   ),
                 ),
               ),
-              if (passed != null)
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
+            ],
+          ),
+          const SizedBox(height: 12),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color(0xFF122033),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: SelectableText(
+                output,
+                style: const TextStyle(
+                  color: Color(0xFFCFF4D2),
+                  fontFamily: 'Courier',
+                  fontSize: 12,
+                  height: 1.4,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          const Text(
+            'Test case',
+            style: TextStyle(
+              fontSize: 13,
+              color: Color(0xFF334155),
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 8),
+          ...List.generate(widget.exercise.testCases.length, (index) {
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: _buildTestCaseRow(index, widget.exercise.testCases[index]),
+            );
+          }),
+          if (allPassed)
+            Container(
+              margin: const EdgeInsets.only(top: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(
+                color: const Color(0xFFE8F8EE),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFFBFE8CC)),
+              ),
+              child: const Row(
+                children: [
+                  Text('🎉', style: TextStyle(fontSize: 16)),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Bạn đã hoàn thành bài này!',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF166534),
+                      ),
+                    ),
                   ),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTestCaseRow(int index, TestCase test) {
+    final hasResult = index < testResults.length;
+    final isPassed = hasResult ? testResults[index] : null;
+
+    final borderColor = isPassed == null
+        ? const Color(0xFFDCE3F1)
+        : (isPassed ? const Color(0xFF9AD7AF) : const Color(0xFFF2A5A5));
+
+    final statusIcon = isPassed == null
+        ? Icons.radio_button_unchecked_rounded
+        : (isPassed ? Icons.check_circle_rounded : Icons.cancel_rounded);
+
+    final statusColor = isPassed == null
+        ? const Color(0xFF64748B)
+        : (isPassed ? const Color(0xFF16A34A) : const Color(0xFFDC2626));
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: borderColor),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(statusIcon, color: statusColor, size: 18),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Test ${index + 1}',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 12,
+                    color: Color(0xFF1E293B),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Input: ${test.input}',
+                  style: const TextStyle(fontSize: 12, color: Color(0xFF475569)),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  'Expected: ${test.expectedOutput}',
+                  style: const TextStyle(fontSize: 12, color: Color(0xFF475569)),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStickyActionBar() {
+    return SafeArea(
+      top: false,
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(14, 10, 14, 12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          border: const Border(top: BorderSide(color: Color(0xFFE2E8F3))),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF0F172A).withValues(alpha: 0.06),
+              blurRadius: 8,
+              offset: const Offset(0, -2),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Material(
+                color: Colors.transparent,
+                borderRadius: BorderRadius.circular(12),
+                child: Ink(
+                  height: 50,
                   decoration: BoxDecoration(
-                    color:
-                        passed ? Colors.green.shade50 : Colors.red.shade50,
-                    borderRadius: BorderRadius.circular(999),
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF2563EB), Color(0xFF4338CA)],
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                    ),
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Text(
-                    passed ? 'PASSED' : 'FAILED',
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: passed ? Colors.green.shade700 : Colors.red.shade700,
-                      fontWeight: FontWeight.w700,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(12),
+                    onTap: isRunning ? null : runCode,
+                    child: Center(
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (isRunning)
+                            const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                              ),
+                            )
+                          else
+                            const Icon(Icons.play_arrow_rounded, color: Colors.white),
+                          const SizedBox(width: 8),
+                          Text(
+                            isRunning ? 'Đang chạy...' : 'Chạy code',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Input: ${test.input}',
-            style: const TextStyle(fontSize: 12, color: Colors.black87),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'Output: ${test.expectedOutput}',
-            style: const TextStyle(fontSize: 12, color: Colors.black87),
-          ),
-        ],
+              ),
+            ),
+            const SizedBox(width: 10),
+            SizedBox(
+              width: 50,
+              height: 50,
+              child: OutlinedButton(
+                onPressed: _showHint,
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: Color(0xFFD3DDEF)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  padding: EdgeInsets.zero,
+                ),
+                child: const Icon(Icons.lightbulb_outline_rounded, size: 22),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -433,14 +695,35 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.sizeOf(context).width;
-    final isCompact = width < 380;
     final isWide = width >= 700;
+    final difficultyColor = _difficultyColor();
 
     return Scaffold(
       backgroundColor: const Color(0xFFF6F8FC),
       appBar: AppBar(
-        title: Text(widget.exercise.title),
         elevation: 0,
+        scrolledUnderElevation: 0,
+        backgroundColor: const Color(0xFFF6F8FC),
+        leadingWidth: 46,
+        leading: Padding(
+          padding: const EdgeInsets.only(left: 10),
+          child: Material(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(10),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(10),
+              onTap: () => Navigator.of(context).pop(),
+              child: const Icon(Icons.arrow_back_ios_new_rounded, size: 18),
+            ),
+          ),
+        ),
+        titleSpacing: 8,
+        title: Text(
+          widget.exercise.title,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 18),
+        ),
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 12),
@@ -448,224 +731,63 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.18),
+                  color: difficultyColor.withValues(alpha: 0.13),
                   borderRadius: BorderRadius.circular(999),
-                  border: Border.all(color: Colors.white.withOpacity(0.25)),
+                  border: Border.all(color: difficultyColor.withValues(alpha: 0.25)),
                 ),
                 child: Text(
                   widget.exercise.difficulty,
-                  style: const TextStyle(fontSize: 12),
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: difficultyColor,
+                  ),
                 ),
               ),
             ),
           ),
         ],
       ),
+      bottomNavigationBar: _buildStickyActionBar(),
       body: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final horizontalPadding = isWide ? 24.0 : 14.0;
-            return SingleChildScrollView(
-              padding: EdgeInsets.fromLTRB(
-                horizontalPadding,
-                14,
-                horizontalPadding,
-                20,
-              ),
-              child: ConstrainedBox(
-                constraints: BoxConstraints(minHeight: constraints.maxHeight - 20),
+        child: CustomScrollView(
+          physics: const BouncingScrollPhysics(),
+          slivers: [
+            SliverPadding(
+              padding: EdgeInsets.fromLTRB(isWide ? 24 : 14, 14, isWide ? 24 : 14, 96),
+              sliver: SliverToBoxAdapter(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildSectionHeader(
-                      icon: Icons.description_outlined,
-                      color: Colors.blue,
-                      title: 'Mô tả bài tập',
-                    ),
-                    const SizedBox(height: 10),
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFFEAF3FF), Color(0xFFF6F9FF)],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: const Color(0xFFBFD8FF)),
-                      ),
-                      child: Text(
-                        widget.exercise.description,
-                        style: const TextStyle(fontSize: 14, height: 1.55),
-                      ),
-                    ),
-                    const SizedBox(height: 14),
-                    if (isWide)
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            child: _buildInfoCard(
-                              label: 'Input',
-                              content: widget.exercise.inputFormat,
-                              color: Colors.teal,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: _buildInfoCard(
-                              label: 'Output',
-                              content: widget.exercise.outputFormat,
-                              color: Colors.deepOrange,
-                            ),
-                          ),
-                        ],
-                      )
-                    else ...[
-                      _buildInfoCard(
-                        label: 'Input',
-                        content: widget.exercise.inputFormat,
-                        color: Colors.teal,
-                      ),
-                      const SizedBox(height: 10),
-                      _buildInfoCard(
-                        label: 'Output',
-                        content: widget.exercise.outputFormat,
-                        color: Colors.deepOrange,
-                      ),
-                    ],
-                    const SizedBox(height: 16),
-                    _buildSectionHeader(
-                      icon: Icons.checklist_rounded,
-                      color: Colors.orange,
-                      title: 'Test Cases',
-                    ),
-                    const SizedBox(height: 10),
-                    ...List.generate(widget.exercise.testCases.length, (index) {
-                      final test = widget.exercise.testCases[index];
-                      return _buildTestCaseCard(index, test);
-                    }),
-                    const SizedBox(height: 16),
-                    _buildSectionHeader(
-                      icon: Icons.code,
-                      color: Colors.green,
-                      title: 'Nhập code Dart của bạn',
-                    ),
-                    const SizedBox(height: 10),
-                    CodeEditorWidget(
-                      controller: codeController,
-                      minLines: 9,
-                      maxLines: 16,
-                    ),
-                    const SizedBox(height: 14),
-                    if (isCompact)
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          ElevatedButton.icon(
-                            onPressed: isRunning ? null : runCode,
-                            icon: isRunning
-                                ? const SizedBox(
-                                    width: 16,
-                                    height: 16,
-                                    child: CircularProgressIndicator(strokeWidth: 2),
-                                  )
-                                : const Icon(Icons.play_arrow),
-                            label: Text(isRunning ? 'Đang chạy...' : 'Chạy code'),
-                            style: ElevatedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 14),
-                              backgroundColor: const Color(0xFF2563EB),
-                              foregroundColor: Colors.white,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          OutlinedButton.icon(
-                            onPressed: _showHint,
-                            icon: const Icon(Icons.lightbulb_outline),
-                            label: const Text('Xem gợi ý'),
-                            style: OutlinedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 14),
-                            ),
-                          ),
-                        ],
-                      )
+                    _buildProblemSection(isWide),
+                    const SizedBox(height: 18),
+                    _buildEditorSection(),
+                    const SizedBox(height: 18),
+                    if (output.isNotEmpty)
+                      _buildResultSection()
                     else
-                      Row(
-                        children: [
-                          Expanded(
-                            child: ElevatedButton.icon(
-                              onPressed: isRunning ? null : runCode,
-                              icon: isRunning
-                                  ? const SizedBox(
-                                      width: 16,
-                                      height: 16,
-                                      child: CircularProgressIndicator(strokeWidth: 2),
-                                    )
-                                  : const Icon(Icons.play_arrow),
-                              label: Text(isRunning ? 'Đang chạy...' : 'Chạy code'),
-                              style: ElevatedButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(vertical: 14),
-                                backgroundColor: const Color(0xFF2563EB),
-                                foregroundColor: Colors.white,
+                      _buildGlassCard(
+                        child: const Row(
+                          children: [
+                            Icon(Icons.play_circle_outline_rounded, color: Color(0xFF2563EB)),
+                            SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                'Nhấn "Chạy code" để kiểm tra kết quả và trạng thái test case.',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: Color(0xFF475569),
+                                ),
                               ),
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          OutlinedButton.icon(
-                            onPressed: _showHint,
-                            icon: const Icon(Icons.lightbulb_outline),
-                            label: const Text('Gợi ý'),
-                            style: OutlinedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 14,
-                                vertical: 14,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    const SizedBox(height: 16),
-                    if (output.isNotEmpty) ...[
-                      _buildSectionHeader(
-                        icon: Icons.terminal,
-                        color: Colors.purple,
-                        title: 'Kết quả chạy',
-                      ),
-                      const SizedBox(height: 8),
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF111827),
-                          borderRadius: BorderRadius.circular(12),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.08),
-                              blurRadius: 8,
-                              offset: const Offset(0, 3),
                             ),
                           ],
                         ),
-                        child: SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: SelectableText(
-                            output,
-                            style: const TextStyle(
-                              color: Color(0xFF86EFAC),
-                              fontFamily: 'Courier',
-                              fontSize: 12,
-                              height: 1.4,
-                            ),
-                          ),
-                        ),
                       ),
-                    ],
                   ],
                 ),
               ),
-            );
-          },
+            ),
+          ],
         ),
       ),
     );
