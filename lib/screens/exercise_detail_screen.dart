@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:code_app/models/exercise_model.dart';
 import 'package:code_app/services/dart_code_runner.dart';
 import 'package:code_app/services/exercise_service.dart';
+import 'package:code_app/services/progress_service.dart';
 import 'package:code_app/widgets/code_editor.dart';
 
 class ExerciseDetailScreen extends StatefulWidget {
@@ -111,8 +113,10 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
     });
 
     if (passedTests == totalTests) {
-      _showSnackBar('🎉 Chúc mừng! Bạn đã hoàn thành bài tập này!',
-          Colors.green);
+      await context
+          .read<ProgressService>()
+          .markExerciseAsCompleted(widget.exercise.id);
+      _showCompletionAndBack();
     } else if (passedTests > 0) {
       _showSnackBar('Tốt lắm! Bạn đã pass $passedTests/$totalTests test',
           Colors.blue);
@@ -187,6 +191,26 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
             normalizedCode.contains('factorial = factorial *') ||
             normalizedCode.contains('result = result *');
         return hasLoop && hasFactorialAccumulate;
+
+        case 'ex6':
+        final hasLoop =
+          normalizedCode.contains('for') || normalizedCode.contains('while');
+        final hasModulo = normalizedCode.contains('%') &&
+          (normalizedCode.contains('== 0') || normalizedCode.contains('==0'));
+        final hasPrimeOutput = normalizedCode.contains('nguyên tố') &&
+          normalizedCode.contains('không nguyên tố');
+        return hasLoop && hasModulo && hasPrimeOutput;
+
+        case 'ex7':
+        final hasLoop =
+          normalizedCode.contains('for') || normalizedCode.contains('while');
+        final hasCondition = normalizedCode.contains('if') &&
+          (normalizedCode.contains('% 3') || normalizedCode.contains('%3')) &&
+          (normalizedCode.contains('% 5') || normalizedCode.contains('%5'));
+        final hasSumAccumulate = normalizedCode.contains('sum +=') ||
+          normalizedCode.contains('sum = sum +') ||
+          normalizedCode.contains('sum= sum +');
+        return hasLoop && hasCondition && hasSumAccumulate;
 
       default:
         return false;
@@ -690,6 +714,14 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
         duration: const Duration(seconds: 3),
       ),
     );
+  }
+
+  void _showCompletionAndBack() {
+    _showSnackBar('🎉 Hoàn thành bài tập! Đang quay về danh sách...', Colors.green);
+    Future.delayed(const Duration(milliseconds: 900), () {
+      if (!mounted) return;
+      Navigator.of(context).pop(true);
+    });
   }
 
   @override

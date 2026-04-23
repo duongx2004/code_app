@@ -106,5 +106,53 @@
         "output": "1"
       }
     ]
+  },
+  {
+    "id": "ex6",
+    "title": "Kiểm tra số nguyên tố",
+    "description": "Viết chương trình kiểm tra một số nguyên dương n có phải là số nguyên tố hay không.\n\nNếu là số nguyên tố, in ra 'Nguyên tố'. Ngược lại in ra 'Không nguyên tố'.\n\nGợi ý:\n- Số nguyên tố là số lớn hơn 1\n- Duyệt từ 2 đến căn bậc hai của n để kiểm tra ước",
+    "input": "Một dòng chứa số nguyên dương n (1 ≤ n ≤ 10^9)",
+    "output": "In ra 'Nguyên tố' hoặc 'Không nguyên tố'",
+    "difficulty": "trung bình",
+    "time_limit": 30,
+    "hint": "import 'dart:io';\n\nvoid main() {\n  int n = int.parse(stdin.readLineSync()!);\n\n  if (n < 2) {\n    print('Không nguyên tố');\n    return;\n  }\n\n  bool isPrime = true;\n  for (int i = 2; i * i <= n; i++) {\n    if (n % i == 0) {\n      isPrime = false;\n      break;\n    }\n  }\n\n  print(isPrime ? 'Nguyên tố' : 'Không nguyên tố');\n}",
+    "test_cases": [
+      {
+        "input": "2",
+        "output": "Nguyên tố"
+      },
+      {
+        "input": "15",
+        "output": "Không nguyên tố"
+      },
+      {
+        "input": "97",
+        "output": "Nguyên tố"
+      }
+    ]
+  },
+  {
+    "id": "ex7",
+    "title": "Tổng các số chia hết cho 3 hoặc 5",
+    "description": "Cho số nguyên dương n, hãy tính tổng tất cả số trong đoạn từ 1 đến n chia hết cho 3 hoặc chia hết cho 5.\n\nVí dụ: n = 10 thì các số thỏa là 3, 5, 6, 9, 10. Tổng là 33.",
+    "input": "Một dòng chứa số nguyên dương n (1 ≤ n ≤ 10^6)",
+    "output": "In ra tổng các số từ 1..n chia hết cho 3 hoặc 5",
+    "difficulty": "nâng cao",
+    "time_limit": 30,
+    "hint": "import 'dart:io';\n\nvoid main() {\n  int n = int.parse(stdin.readLineSync()!);\n  int sum = 0;\n\n  for (int i = 1; i <= n; i++) {\n    if (i % 3 == 0 || i % 5 == 0) {\n      sum += i;\n    }\n  }\n\n  print(sum);\n}",
+    "test_cases": [
+      {
+        "input": "10",
+        "output": "33"
+      },
+      {
+        "input": "16",
+        "output": "60"
+      },
+      {
+        "input": "1",
+        "output": "0"
+      }
+    ]
   }
 ]
