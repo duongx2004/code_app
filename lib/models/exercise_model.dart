@@ -38,6 +38,36 @@ class DartExercise {
       timeLimit: json['time_limit'] as int? ?? 30,
     );
   }
+
+  factory DartExercise.fromMap(
+    Map<String, dynamic> map,
+    List<TestCase> testCases,
+  ) {
+    return DartExercise(
+      id: map['id'] as String,
+      title: map['title'] as String,
+      description: map['description'] as String,
+      inputFormat: map['input_format'] as String,
+      outputFormat: map['output_format'] as String,
+      testCases: testCases,
+      difficulty: map['difficulty'] as String,
+      hint: map['hint'] as String?,
+      timeLimit: map['time_limit'] as int,
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'title': title,
+      'description': description,
+      'input_format': inputFormat,
+      'output_format': outputFormat,
+      'difficulty': difficulty,
+      'hint': hint,
+      'time_limit': timeLimit,
+    };
+  }
 }
 
 class TestCase {
@@ -54,5 +84,19 @@ class TestCase {
       input: json['input'] as String,
       expectedOutput: json['output'] as String,
     );
+  }
+
+  factory TestCase.fromMap(Map<String, dynamic> map) {
+    return TestCase(
+      input: map['input'] as String,
+      expectedOutput: map['expected_output'] as String,
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'input': input,
+      'output': expectedOutput,
+    };
   }
 }

@@ -12,8 +12,16 @@ class Question {
   factory Question.fromJson(Map<String, dynamic> json) {
     return Question(
       questionText: json['questionText'] as String,
-      options: List<String>.from(json['options']),
+      options: List<String>.from(json['options'] as List<dynamic>),
       correctAnswerIndex: json['correctAnswerIndex'] as int,
     );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'questionText': questionText,
+      'options': options,
+      'correctAnswerIndex': correctAnswerIndex,
+    };
   }
 }

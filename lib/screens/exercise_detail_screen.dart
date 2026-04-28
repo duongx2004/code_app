@@ -55,15 +55,17 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
 
   Future<void> _executeCode(String code) async {
     final results = <bool>[];
+    final actualOutputs = <String>[];
     var passedTestsCount = 0;
     String? runtimeError;
+    var hasConnectionFailure = false;
 
     if (!_hasExerciseSpecificLogic(code)) {
       final failedResults = List<bool>.filled(totalTests, false);
       final builtOutput = _buildOutputText(
         failedResults,
         0,
-        runtimeError: "Code chưa đủ cấu trúc. Kiểm tra: import 'dart:io', stdin.readLineSync(), print(), vòng lặp, và logic bài tập.",
+        runtimeError: "Code chưa đủ cấu trúc. Kiểm tra: đọc input bằng stdin.readLineSync()/readLineSync() và in output bằng print()/stdout.write().",
       );
 
       if (!mounted) return;
@@ -85,16 +87,21 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
         timeout: Duration(seconds: widget.exercise.timeLimit),
       );
 
+      if (executionResult.connectionFailed) {
+        hasConnectionFailure = true;
+      }
+
       runtimeError ??= executionResult.error ??
           (executionResult.stderr.trim().isNotEmpty
               ? executionResult.stderr.trim()
               : (executionResult.timedOut ? 'Code chạy quá thời gian cho phép.' : null));
 
-      final userOutput = executionResult.stdout.trimRight();
+      final userOutput = executionResult.stdout.trim();
       final passed = !executionResult.hasError &&
           ExerciseService.compareOutput(userOutput, testCase.expectedOutput);
 
       results.add(passed);
+      actualOutputs.add(userOutput);
       if (passed) passedTestsCount++;
     }
 
@@ -102,6 +109,7 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
       results,
       passedTestsCount,
       runtimeError: runtimeError,
+      actualOutputs: actualOutputs,
     );
 
     if (!mounted) return;
@@ -111,6 +119,20 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
       isRunning = false;
       output = builtOutput;
     });
+
+    final normalizedRuntimeError = runtimeError?.toLowerCase() ?? '';
+    final hasNetworkIssue = hasConnectionFailure ||
+      normalizedRuntimeError.contains('kết nối') ||
+      normalizedRuntimeError.contains('mạng') ||
+      normalizedRuntimeError.contains('thời gian chờ mạng');
+
+    if (hasNetworkIssue) {
+      _showSnackBar(
+        'Không thể kết nối server chạy code. Kiểm tra mạng hoặc server đang chạy.',
+        Colors.orange,
+      );
+      return;
+    }
 
     if (passedTests == totalTests) {
       await context
@@ -127,100 +149,22 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
 
   bool _hasExerciseSpecificLogic(String code) {
     final normalizedCode = code.toLowerCase();
+    final compactCode = normalizedCode.replaceAll(RegExp(r'\s+'), '');
 
-    // Bắt buộc phải có import dart:io để dùng stdin.readLineSync
-    final hasImport = normalizedCode.contains("import 'dart:io'") ||
-        normalizedCode.contains('import "dart:io"');
+    // Đủ tiêu chí cơ bản: đọc input và in output
+    final hasInput = compactCode.contains('stdin.readlinesync(') ||
+        compactCode.contains('readlinesync(');
+    final hasOutput = compactCode.contains('print(') ||
+        compactCode.contains('stdout.write(');
 
-    // Phải dùng stdin.readLineSync() hoặc readLineSync() từ stdin
-    final hasInput = normalizedCode.contains('stdin.readlinesync') ||
-        normalizedCode.contains('readlinesync');
-    final hasOutput = normalizedCode.contains('print(') ||
-        normalizedCode.contains('stdout.write');
-
-    if (!hasImport || !hasInput || !hasOutput) {
-      return false;
-    }
-
-    switch (widget.exercise.id) {
-      case 'ex1':
-        final hasLoop =
-            normalizedCode.contains('while') || normalizedCode.contains('for');
-        final hasModulo = normalizedCode.contains('% 10') ||
-            normalizedCode.contains('%10');
-        final hasDivide = normalizedCode.contains('~/= 10') ||
-            normalizedCode.contains('~/=10') ||
-            normalizedCode.contains('~/ 10') ||
-            normalizedCode.contains('~/10');
-        final hasSumAccumulate = normalizedCode.contains('sum +=') ||
-            normalizedCode.contains('sum= sum +') ||
-            normalizedCode.contains('sum = sum +');
-        return hasLoop && hasModulo && hasDivide && hasSumAccumulate;
-
-      case 'ex2':
-        final hasLoop =
-            normalizedCode.contains('for') || normalizedCode.contains('while');
-        final hasStarOutput = normalizedCode.contains("'*' *") ||
-            normalizedCode.contains('"*" *') ||
-            normalizedCode.contains("stdout.write('*')") ||
-            normalizedCode.contains('stdout.write("*")');
-        return hasLoop && hasStarOutput;
-
-      case 'ex3':
-        final hasModulo2 = normalizedCode.contains('% 2') ||
-            normalizedCode.contains('%2');
-        final hasCondition =
-            normalizedCode.contains('if') && normalizedCode.contains('else');
-        final hasEvenOddOutput = normalizedCode.contains('chẵn') &&
-            normalizedCode.contains('lẻ');
-        return hasModulo2 && hasCondition && hasEvenOddOutput;
-
-      case 'ex4':
-        final hasThreeInputs = normalizedCode.contains('int a') &&
-            normalizedCode.contains('int b') &&
-            normalizedCode.contains('int c');
-        final hasComparison = normalizedCode.contains('>') ||
-            normalizedCode.contains('reduce((v, e) => v > e ? v : e)') ||
-            normalizedCode.contains('math.max');
-        return hasThreeInputs && hasComparison;
-
-      case 'ex5':
-        final hasLoop =
-            normalizedCode.contains('for') || normalizedCode.contains('while');
-        final hasFactorialAccumulate = normalizedCode.contains('*=') ||
-            normalizedCode.contains('factorial = factorial *') ||
-            normalizedCode.contains('result = result *');
-        return hasLoop && hasFactorialAccumulate;
-
-        case 'ex6':
-        final hasLoop =
-          normalizedCode.contains('for') || normalizedCode.contains('while');
-        final hasModulo = normalizedCode.contains('%') &&
-          (normalizedCode.contains('== 0') || normalizedCode.contains('==0'));
-        final hasPrimeOutput = normalizedCode.contains('nguyên tố') &&
-          normalizedCode.contains('không nguyên tố');
-        return hasLoop && hasModulo && hasPrimeOutput;
-
-        case 'ex7':
-        final hasLoop =
-          normalizedCode.contains('for') || normalizedCode.contains('while');
-        final hasCondition = normalizedCode.contains('if') &&
-          (normalizedCode.contains('% 3') || normalizedCode.contains('%3')) &&
-          (normalizedCode.contains('% 5') || normalizedCode.contains('%5'));
-        final hasSumAccumulate = normalizedCode.contains('sum +=') ||
-          normalizedCode.contains('sum = sum +') ||
-          normalizedCode.contains('sum= sum +');
-        return hasLoop && hasCondition && hasSumAccumulate;
-
-      default:
-        return false;
-    }
+    return hasInput && hasOutput;
   }
 
   String _buildOutputText(
     List<bool> results,
     int passed, {
     String? runtimeError,
+    List<String>? actualOutputs,
   }) {
     StringBuffer sb = StringBuffer();
     sb.writeln('📊 Kết quả kiểm tra: $passed/$totalTests test passed\n');
@@ -235,6 +179,9 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
       sb.writeln(result ? '✅ Test ${i + 1}: PASSED' : '❌ Test ${i + 1}: FAILED');
       sb.writeln('   Input: ${test.input}');
       sb.writeln('   Expected: ${test.expectedOutput}');
+      if (!result && actualOutputs != null && actualOutputs.length > i) {
+        sb.writeln('   Actual: ${actualOutputs[i]}');
+      }
       sb.writeln('');
     }
 

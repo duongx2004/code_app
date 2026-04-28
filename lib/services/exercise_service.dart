@@ -1,45 +1,45 @@
-import 'dart:convert';
-import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
 import 'package:code_app/models/exercise_model.dart';
+import 'package:code_app/services/backend_api.dart';
 
 class ExerciseService {
   static Future<List<DartExercise>> loadExercises() async {
     try {
-      final String response =
-          await rootBundle.loadString('assets/data/exercises.json');
-      final List<dynamic> data = json.decode(response);
-      return data.map((json) => DartExercise.fromJson(json)).toList();
+      final response = await BackendApi.get('/api/exercises');
+      final exercisesJson = response['exercises'] as List<dynamic>? ?? [];
+      return exercisesJson
+          .map((json) => DartExercise.fromJson(json as Map<String, dynamic>))
+          .toList();
     } catch (e) {
-      print("Error loading exercises: $e");
+      debugPrint("Error loading exercises from backend: $e");
       return [];
     }
   }
 
   static Future<DartExercise?> getExerciseById(String id) async {
-    final exercises = await loadExercises();
     try {
-      return exercises.firstWhere((ex) => ex.id == id);
+      final response = await BackendApi.get('/api/exercises/$id');
+      final exerciseJson = response['exercise'] as Map<String, dynamic>?;
+      if (exerciseJson == null) return null;
+      return DartExercise.fromJson(exerciseJson);
     } catch (e) {
+      debugPrint("Error loading exercise by id: $e");
       return null;
     }
   }
 
   /// So sánh kết quả output của người dùng với expected output
   static bool compareOutput(String userOutput, String expectedOutput) {
-    // Remove trailing whitespace từng dòng
-    List<String> userLines = userOutput
-        .split('\n')
-        .map((line) => line.trimRight())
-        .where((line) => line.isNotEmpty)
-        .toList();
+    String normalize(String value) {
+      return value
+          .replaceAll('\r', '')
+          .split('\n')
+          .map((line) => line.trimRight())
+          .join('\n')
+          .trimRight();
+    }
 
-    List<String> expectedLines = expectedOutput
-        .split('\n')
-        .map((line) => line.trimRight())
-        .where((line) => line.isNotEmpty)
-        .toList();
-
-    return userLines.join('\n') == expectedLines.join('\n');
+    return normalize(userOutput) == normalize(expectedOutput);
   }
 
   /// Nhân bản input để test

@@ -24,22 +24,41 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isLoading = true);
-    final success = await _authService.register(
-      _emailController.text.trim(),
-      _passwordController.text,
-      _nameController.text.trim(),
-    );
-    setState(() => _isLoading = false);
-
-    if (success) {
-      await _authService.login(_emailController.text.trim(), _passwordController.text);
-      if (mounted) {
-        Navigator.pushReplacementNamed(context, '/home');
-      }
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Email đã tồn tại')),
+    try {
+      final success = await _authService.register(
+        _emailController.text.trim(),
+        _passwordController.text,
+        _nameController.text.trim(),
       );
+
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+
+      if (success) {
+        final loginSuccess = await _authService.login(
+          _emailController.text.trim(),
+          _passwordController.text,
+        );
+        if (!mounted) return;
+        if (loginSuccess) {
+          Navigator.pushReplacementNamed(context, '/home');
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Đăng ký thành công nhưng đăng nhập thất bại')),
+          );
+        }
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Email đã tồn tại')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Lỗi đăng ký: $e')),
+        );
+      }
     }
   }
 

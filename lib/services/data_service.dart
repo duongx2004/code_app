@@ -1,11 +1,12 @@
-import 'dart:convert';
-import 'package:flutter/services.dart';
 import 'package:code_app/models/models.dart';
+import 'package:code_app/services/backend_api.dart';
 
 class DataService {
   static Future<List<Lesson>> loadLessons() async {
-    final String response = await rootBundle.loadString('assets/data/lessons.json');
-    final List<dynamic> data = json.decode(response);
-    return data.map((json) => Lesson.fromJson(json)).toList();
+    final response = await BackendApi.get('/api/lessons');
+    final lessonsJson = response['lessons'] as List<dynamic>? ?? [];
+    return lessonsJson
+        .map((json) => Lesson.fromJson(json as Map<String, dynamic>))
+        .toList();
   }
 }

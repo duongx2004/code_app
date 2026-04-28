@@ -21,21 +21,28 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isLoading = true);
-    final success = await _authService.login(
-      _emailController.text.trim(),
-      _passwordController.text,
-    );
-    setState(() => _isLoading = false);
-
-    if (success) {
-      // Đăng nhập thành công, chuyển về màn hình chính
-      if (mounted) {
-        Navigator.pushReplacementNamed(context, '/home');
-      }
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Sai email hoặc mật khẩu')),
+    try {
+      final success = await _authService.login(
+        _emailController.text.trim(),
+        _passwordController.text,
       );
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+
+      if (success) {
+        Navigator.pushReplacementNamed(context, '/home');
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Sai email hoặc mật khẩu')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Lỗi đăng nhập: $e')),
+        );
+      }
     }
   }
 

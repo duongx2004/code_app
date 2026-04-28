@@ -7,7 +7,7 @@
     "output": "In ra tổng các chữ số của số n",
     "difficulty": "cơ bản",
     "time_limit": 30,
-    "hint": "void main() {\n  int n = int.parse(readLineSync()!);\n  int sum = 0;\n  while (n > 0) {\n    sum += n % 10;\n    n ~/= 10;\n  }\n  print(sum);\n}",
+    "hint": "import 'dart:io';\n\nvoid main() {\n  int n = int.parse(stdin.readLineSync()!);\n  int sum = 0;\n  while (n > 0) {\n    sum += n % 10;\n    n ~/= 10;\n  }\n  print(sum);\n}",
     "test_cases": [
       {
         "input": "123",

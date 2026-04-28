@@ -1,0 +1,17 @@
+{
+  "name": "code-app-dart-runner",
+  "version": "1.0.0",
+  "description": "HTTP server that runs Dart code in a temporary sandbox and exposes MySQL-backed API for auth/exercises.",
+  "main": "run_dart_server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node run_dart_server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "dotenv": "^16.3.1",
+    "mysql2": "^3.5.2"
+  }
+}

@@ -1,9 +1,12 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
+
+import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
 
 class DartCodeExecutionResult {
   final bool timedOut;
+  final bool connectionFailed;
   final int? exitCode;
   final String stdout;
   final String stderr;
@@ -11,6 +14,7 @@ class DartCodeExecutionResult {
 
   const DartCodeExecutionResult({
     required this.timedOut,
+    required this.connectionFailed,
     required this.exitCode,
     required this.stdout,
     required this.stderr,
@@ -26,79 +30,102 @@ class DartCodeExecutionResult {
 }
 
 class DartCodeRunner {
+  static String resolveBaseUrl({String? apiBaseUrl, TargetPlatform? platform}) {
+    final configuredBaseUrl = apiBaseUrl?.trim();
+    if (configuredBaseUrl != null && configuredBaseUrl.isNotEmpty) {
+      return configuredBaseUrl;
+    }
+
+    const envBaseUrl = String.fromEnvironment(
+      'DART_RUNNER_API_BASE_URL',
+      defaultValue: '',
+    );
+
+    if (envBaseUrl.isNotEmpty) {
+      return envBaseUrl;
+    }
+
+    final effectivePlatform = platform ?? defaultTargetPlatform;
+    if (effectivePlatform == TargetPlatform.android) {
+      return 'http://10.0.2.2:8080';
+    }
+
+    return 'http://localhost:8080';
+  }
+
   static Future<DartCodeExecutionResult> runCode(
     String code, {
     String input = '',
     Duration timeout = const Duration(seconds: 5),
+    String? apiBaseUrl,
   }) async {
-    Directory? tempDir;
-
     try {
-      tempDir = await Directory.systemTemp.createTemp('code_app_runner_');
-      final scriptFile = File('${tempDir.path}${Platform.pathSeparator}main.dart');
-      await scriptFile.writeAsString(code);
+      final baseUrl = resolveBaseUrl(apiBaseUrl: apiBaseUrl);
+      final requestUri = Uri.parse(baseUrl).resolve('/run_dart');
+      final response = await http
+          .post(
+            requestUri,
+            headers: const {'Content-Type': 'application/json'},
+            body: jsonEncode({
+              'code': code,
+              'input': input,
+              'timeout': timeout.inSeconds,
+            }),
+          )
+          .timeout(timeout + const Duration(seconds: 8));
 
-      final process = await Process.start(
-        'dart',
-        [scriptFile.path],
-        workingDirectory: tempDir.path,
-        runInShell: true,
-      );
+      final decoded = jsonDecode(response.body) as Map<String, dynamic>;
 
-      final stdoutFuture = process.stdout.transform(utf8.decoder).join();
-      final stderrFuture = process.stderr.transform(utf8.decoder).join();
+      debugPrint('DartCodeRunner: Received response - stdout: "${decoded['stdout']}", stderr: "${decoded['stderr']}", error: "${decoded['error']}", timedOut: ${decoded['timedOut']}, exitCode: ${decoded['exitCode']}');
 
-      if (input.isNotEmpty) {
-        process.stdin.write(input);
-        if (!input.endsWith('\n')) {
-          process.stdin.write('\n');
-        }
+      if (response.statusCode < 200 || response.statusCode >= 300) {
+        return DartCodeExecutionResult(
+          timedOut: false,
+          connectionFailed: false,
+          exitCode: decoded['exitCode'] as int?,
+          stdout: (decoded['stdout'] as String?) ?? '',
+          stderr: (decoded['stderr'] as String?) ?? '',
+          error: (decoded['error'] as String?) ??
+              'Server trả về lỗi HTTP ${response.statusCode}',
+        );
       }
-      await process.stdin.close();
-
-      var timedOut = false;
-      final exitCode = await process.exitCode.timeout(
-        timeout,
-        onTimeout: () {
-          timedOut = true;
-          process.kill();
-          return -1;
-        },
-      );
-
-      final stdout = await stdoutFuture;
-      final stderr = await stderrFuture;
 
       return DartCodeExecutionResult(
-        timedOut: timedOut,
-        exitCode: timedOut ? null : exitCode,
-        stdout: stdout,
-        stderr: stderr,
+        timedOut: decoded['timedOut'] as bool? ?? false,
+        connectionFailed: false,
+        exitCode: decoded['exitCode'] as int?,
+        stdout: (decoded['stdout'] as String?) ?? '',
+        stderr: (decoded['stderr'] as String?) ?? '',
+        error: decoded['error'] as String?,
       );
-    } on ProcessException catch (error) {
+    } on http.ClientException catch (error) {
+      debugPrint('DartCodeRunner: Connection failed: ${error.message}');
       return DartCodeExecutionResult(
         timedOut: false,
+        connectionFailed: true,
         exitCode: null,
         stdout: '',
         stderr: '',
-        error: 'Không thể chạy Dart: ${error.message}',
+        error: 'Không thể kết nối server chạy code: ${error.message}',
+      );
+    } on TimeoutException {
+      return DartCodeExecutionResult(
+        timedOut: true,
+        connectionFailed: true,
+        exitCode: null,
+        stdout: '',
+        stderr: '',
+        error: 'Yêu cầu chạy code bị hết thời gian chờ mạng hoặc server phản hồi chậm.',
       );
     } catch (error) {
       return DartCodeExecutionResult(
         timedOut: false,
+        connectionFailed: false,
         exitCode: null,
         stdout: '',
         stderr: '',
-        error: 'Lỗi khi chạy code: $error',
+        error: 'Lỗi khi gửi code lên server: $error',
       );
-    } finally {
-      if (tempDir != null && await tempDir.exists()) {
-        try {
-          await tempDir.delete(recursive: true);
-        } catch (_) {
-          // Ignore cleanup errors.
-        }
-      }
     }
   }
 }

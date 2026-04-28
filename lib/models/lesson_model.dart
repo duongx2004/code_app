@@ -21,7 +21,7 @@ class Lesson {
     final quizList = json['quiz'] as List? ?? [];
 
     List<Question> quizObjects =
-    quizList.map((q) => Question.fromJson(q)).toList();
+        quizList.map((q) => Question.fromJson(q)).toList();
 
     return Lesson(
       id: json['id'] as String,
@@ -31,5 +31,16 @@ class Lesson {
       expectedOutput: json['expectedOutput'] as String,
       quiz: quizObjects,
     );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'title': title,
+      'content': content,
+      'codeSample': codeSample,
+      'expectedOutput': expectedOutput,
+      'quiz': quiz.map((question) => question.toMap()).toList(),
+    };
   }
 }

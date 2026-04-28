@@ -8,6 +8,7 @@ import 'package:code_app/screens/exercise_screen.dart';
 import 'package:code_app/screens/auth/login_screen.dart';
 import 'package:code_app/screens/auth/register_screen.dart';
 import 'package:code_app/screens/profile/edit_profile_screen.dart';
+import 'package:code_app/screens/admin_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -43,6 +44,7 @@ class MyApp extends StatelessWidget {
         '/home': (context) => const MainNavigation(),
         '/login': (context) => const LoginScreen(),
         '/register': (context) => const RegisterScreen(),
+        '/admin': (context) => const AdminScreen(),
       },
     );
   }
@@ -84,6 +86,7 @@ class MainNavigation extends StatefulWidget {
 class _MainNavigationState extends State<MainNavigation> {
   int _currentIndex = 0;
   String? _displayName;
+  bool _isAdmin = false;
   final List<Widget> _screens = const [
     ExerciseScreen(),
     HomeScreen(),
@@ -98,9 +101,11 @@ class _MainNavigationState extends State<MainNavigation> {
 
   Future<void> _loadDisplayName() async {
     final name = await AuthService().getDisplayName();
+    final admin = await AuthService().isAdmin();
     if (mounted) {
       setState(() {
         _displayName = name;
+        _isAdmin = admin;
       });
     }
   }
@@ -160,6 +165,10 @@ class _MainNavigationState extends State<MainNavigation> {
                 if (updated == true) {
                   _loadDisplayName();
                 }
+              } else if (value == 'admin') {
+                if (mounted) {
+                  Navigator.pushNamed(context, '/admin');
+                }
               } else if (value == 'logout') {
                 await AuthService().logout();
                 if (mounted) {
@@ -178,6 +187,17 @@ class _MainNavigationState extends State<MainNavigation> {
                   ],
                 ),
               ),
+              if (_isAdmin)
+                const PopupMenuItem(
+                  value: 'admin',
+                  child: Row(
+                    children: [
+                      Icon(Icons.admin_panel_settings, size: 20),
+                      SizedBox(width: 12),
+                      Text('Admin Dashboard'),
+                    ],
+                  ),
+                ),
               const PopupMenuItem(
                 value: 'logout',
                 child: Row(
