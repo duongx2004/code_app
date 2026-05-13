@@ -112,6 +112,8 @@ class _QuizListScreenState extends State<QuizListScreen> {
   Widget build(BuildContext context) {
     final progressService = Provider.of<ProgressService>(context);
     final completedCount = quizzes.where((q) => progressService.isQuizCompleted(q.id)).length;
+    final totalCount = quizzes.length;
+    final progressValue = totalCount > 0 ? completedCount / totalCount : 0.0;
 
     return Scaffold(
       appBar: AppBar(
@@ -150,19 +152,16 @@ class _QuizListScreenState extends State<QuizListScreen> {
         ),
         child: Column(
           children: [
-            // Header with progress
             Container(
-              padding: const EdgeInsets.all(20),
+              margin: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: const BorderRadius.only(
-                  bottomLeft: Radius.circular(20),
-                  bottomRight: Radius.circular(20),
-                ),
+                borderRadius: BorderRadius.circular(14),
                 boxShadow: [
                   BoxShadow(
                     color: AppTheme.primaryColor.withOpacity(0.1),
-                    blurRadius: 10,
+                    blurRadius: 6,
                     offset: const Offset(0, 2),
                   ),
                 ],
@@ -173,48 +172,72 @@ class _QuizListScreenState extends State<QuizListScreen> {
                   Row(
                     children: [
                       Container(
-                        padding: const EdgeInsets.all(8),
+                        padding: const EdgeInsets.all(6),
                         decoration: BoxDecoration(
                           color: AppTheme.primaryColor.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(10),
                         ),
                         child: Icon(
                           Icons.quiz,
                           color: AppTheme.primaryColor,
-                          size: 24,
+                          size: 20,
                         ),
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: 10),
                       const Expanded(
                         child: Text(
                           'Trắc nghiệm',
                           style: TextStyle(
-                            fontSize: 22,
+                            fontSize: 19,
                             fontWeight: FontWeight.bold,
                             color: AppTheme.textPrimaryLight,
                           ),
                         ),
                       ),
+                      const SizedBox(width: 8),
+                      Text(
+                        '$completedCount/$totalCount',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: AppTheme.primaryColor,
+                        ),
+                      ),
                     ],
                   ),
-                  const SizedBox(height: 20),
-                  ProgressCard(
-                    completed: completedCount,
-                    total: quizzes.length,
-                    message: completedCount == quizzes.length
+                  const SizedBox(height: 10),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(999),
+                    child: LinearProgressIndicator(
+                      minHeight: 8,
+                      value: progressValue,
+                      backgroundColor: AppTheme.primaryColor.withOpacity(0.08),
+                      valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    completedCount == totalCount && totalCount > 0
                         ? '🎉 Chúc mừng! Bạn đã hoàn thành tất cả bài trắc nghiệm!'
                         : '💪 Tiếp tục cố gắng để hoàn thành khóa học!',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Colors.grey[600],
+                      fontStyle: FontStyle.italic,
+                    ),
                   ),
                 ],
               ),
             ),
 
-            const SizedBox(height: 8),
+            const SizedBox(height: 4),
 
             // Search and filters
             Container(
               margin: const EdgeInsets.symmetric(horizontal: 16),
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(16),
@@ -233,16 +256,16 @@ class _QuizListScreenState extends State<QuizListScreen> {
                     controller: _searchController,
                     hintText: 'Tìm kiếm bài trắc nghiệm...',
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 10),
                   const Text(
                     'Độ khó',
                     style: TextStyle(
-                      fontSize: 16,
+                      fontSize: 14,
                       fontWeight: FontWeight.w600,
                       color: AppTheme.textPrimaryLight,
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 8),
                   FilterChips(
                     options: const ['Tất cả', 'Cơ bản', 'Trung bình', 'Nâng cao'],
                     selected: _selectedDifficulty,
@@ -252,7 +275,7 @@ class _QuizListScreenState extends State<QuizListScreen> {
               ),
             ),
 
-            const SizedBox(height: 8),
+            const SizedBox(height: 4),
 
             // Quizzes list
             Expanded(

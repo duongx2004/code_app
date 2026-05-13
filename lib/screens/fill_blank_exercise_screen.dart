@@ -235,13 +235,39 @@ class _FillBlankExerciseScreenState extends State<FillBlankExerciseScreen> {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    Text(
-                      'Độ khó: ${exercise.difficulty}',
-                      style: TextStyle(
-                        color: _getDifficultyColor(exercise.difficulty),
-                        fontWeight: FontWeight.w500,
+                      Row(
+                        children: [
+                          Icon(
+                            _getDifficultyIcon(exercise.difficulty),
+                            color: _getDifficultyColor(exercise.difficulty),
+                            size: 24,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Độ khó: ${exercise.difficulty}',
+                            style: TextStyle(
+                              color: _getDifficultyColor(exercise.difficulty),
+                              fontWeight: FontWeight.w600,
+                              fontSize: 16,
+                            ),
+                          ),
+                          const Spacer(),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: AppTheme.primaryColor.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Text(
+                              'Blanks: ${exercise.blanks.length}',
+                              style: TextStyle(
+                                color: AppTheme.primaryColor,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
                     const SizedBox(height: 16),
                     Text(exercise.content),
                   ],
@@ -358,3 +384,17 @@ class _FillBlankExerciseScreenState extends State<FillBlankExerciseScreen> {
     }
   }
 }
+
+
+  IconData _getDifficultyIcon(String difficulty) {
+    switch (difficulty.toLowerCase()) {
+      case 'dễ':
+        return Icons.sentiment_satisfied;
+      case 'trung bình':
+        return Icons.sentiment_neutral;
+      case 'khó':
+        return Icons.sentiment_dissatisfied;
+      default:
+        return Icons.help_outline;
+    }
+  }

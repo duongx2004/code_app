@@ -18,7 +18,6 @@ class _FillBlankListScreenState extends State<FillBlankListScreen> {
   bool _isLoading = true;
   String? _error;
   String selectedDifficulty = 'Tất cả';
-
   @override
   void initState() {
     super.initState();
@@ -84,13 +83,17 @@ class _FillBlankListScreenState extends State<FillBlankListScreen> {
     if (selectedDifficulty == 'Tất cả') {
       return _exercises;
     }
-    return _exercises.where((exercise) => exercise['difficulty'] == selectedDifficulty).toList();
+    return _exercises.where((exercise) =>
+      exercise['difficulty']?.toString().toLowerCase() == selectedDifficulty.toLowerCase()
+    ).toList();
   }
 
   @override
   Widget build(BuildContext context) {
     final progressService = Provider.of<ProgressService>(context);
     final completedCount = _exercises.where((e) => progressService.isFillBlankCompleted(e['id'])).length;
+    final totalCount = _exercises.length;
+    final progressValue = totalCount > 0 ? completedCount / totalCount : 0.0;
 
     return Scaffold(
       appBar: AppBar(
@@ -129,19 +132,16 @@ class _FillBlankListScreenState extends State<FillBlankListScreen> {
         ),
         child: Column(
           children: [
-            // Header with progress
             Container(
-              padding: const EdgeInsets.all(20),
+              margin: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: const BorderRadius.only(
-                  bottomLeft: Radius.circular(20),
-                  bottomRight: Radius.circular(20),
-                ),
+                borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
                     color: AppTheme.primaryColor.withOpacity(0.1),
-                    blurRadius: 10,
+                    blurRadius: 8,
                     offset: const Offset(0, 2),
                   ),
                 ],
@@ -152,48 +152,72 @@ class _FillBlankListScreenState extends State<FillBlankListScreen> {
                   Row(
                     children: [
                       Container(
-                        padding: const EdgeInsets.all(8),
+                        padding: const EdgeInsets.all(6),
                         decoration: BoxDecoration(
                           color: AppTheme.primaryColor.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(10),
                         ),
                         child: Icon(
                           Icons.edit,
                           color: AppTheme.primaryColor,
-                          size: 24,
+                          size: 20,
                         ),
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: 10),
                       const Expanded(
                         child: Text(
                           'Điền vào chỗ trống',
                           style: TextStyle(
-                            fontSize: 22,
+                            fontSize: 19,
                             fontWeight: FontWeight.bold,
                             color: AppTheme.textPrimaryLight,
                           ),
                         ),
                       ),
+                      const SizedBox(width: 8),
+                      Text(
+                        '$completedCount/$totalCount',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: AppTheme.primaryColor,
+                        ),
+                      ),
                     ],
                   ),
-                  const SizedBox(height: 20),
-                  ProgressCard(
-                    completed: completedCount,
-                    total: _exercises.length,
-                    message: completedCount == _exercises.length
+                  const SizedBox(height: 10),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(999),
+                    child: LinearProgressIndicator(
+                      minHeight: 8,
+                      value: progressValue,
+                      backgroundColor: AppTheme.primaryColor.withOpacity(0.08),
+                      valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    completedCount == totalCount && totalCount > 0
                         ? '🎉 Chúc mừng! Bạn đã hoàn thành tất cả bài tập điền chỗ trống!'
                         : '💪 Tiếp tục cố gắng để hoàn thành khóa học!',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Colors.grey[600],
+                      fontStyle: FontStyle.italic,
+                    ),
                   ),
                 ],
               ),
             ),
 
-            const SizedBox(height: 8),
+            const SizedBox(height: 4),
 
             // Filter bar
             Container(
               margin: const EdgeInsets.symmetric(horizontal: 16),
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(16),
@@ -225,6 +249,8 @@ class _FillBlankListScreenState extends State<FillBlankListScreen> {
                 ],
               ),
             ),
+
+            const SizedBox(height: 6),
 
             // Exercises list
             Expanded(

@@ -1765,32 +1765,9 @@ class _AdminScreenState extends State<AdminScreen> {
     );
   }
 
-  Widget _buildLessonsAndQuizTab() {
-    // Nested tabs: Bài học + Trắc nhiệm
-    return DefaultTabController(
-      length: 2,
-      child: Column(
-        children: [
-          Material(
-            color: Colors.white,
-            child: const TabBar(
-              tabs: [
-                Tab(icon: Icon(Icons.menu_book), text: 'Bài học'),
-                Tab(icon: Icon(Icons.quiz), text: 'Trắc nhiệm'),
-              ],
-            ),
-          ),
-          Expanded(
-            child: TabBarView(
-              children: [
-                _buildLessonsTab(),
-                _buildQuizTab(),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+Widget _buildLessonsAndQuizTab() {
+  return _buildLessonsTab(); // hoặc _buildQuizTab()
+}
+
 }
 
