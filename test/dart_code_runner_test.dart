@@ -14,7 +14,7 @@ void main() {
     test('uses localhost by default on desktop platforms', () {
       expect(
         DartCodeRunner.resolveBaseUrl(platform: TargetPlatform.windows),
-        'http://localhost:8080',
+        'http://localhost:8081',
       );
     });
 

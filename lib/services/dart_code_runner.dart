@@ -50,7 +50,7 @@ class DartCodeRunner {
       return 'http://10.0.2.2:8080';
     }
 
-    return 'http://localhost:8080';
+    return 'http://localhost:8081';
   }
 
   static Future<DartCodeExecutionResult> runCode(

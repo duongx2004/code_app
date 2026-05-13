@@ -1,0 +1,152 @@
+[
+  {
+    "id": "fb1",
+    "title": "Biến và kiểu dữ liệu",
+    "description": "Điền vào chỗ trống để khai báo biến đúng cú pháp Dart",
+    "difficulty": "Cơ bản",
+    "content": "Để khai báo một biến kiểu String trong Dart, chúng ta sử dụng từ khóa _____ và tên biến.",
+    "blanks": [
+      {
+        "position": 12,
+        "correct_answer": "String",
+        "hint": "Kiểu dữ liệu cho chuỗi ký tự"
+      }
+    ],
+    "explanation": "Trong Dart, để khai báo biến kiểu String chúng ta dùng từ khóa 'String'."
+  },
+  {
+    "id": "fb2",
+    "title": "Vòng lặp for",
+    "description": "Điền vào chỗ trống để tạo vòng lặp for đúng cú pháp",
+    "difficulty": "Cơ bản",
+    "content": "Cú pháp vòng lặp for trong Dart: for (_____ i = 0; i < 5; i++) { print(i); }",
+    "blanks": [
+      {
+        "position": 7,
+        "correct_answer": "int",
+        "hint": "Kiểu dữ liệu số nguyên"
+      }
+    ],
+    "explanation": "Trong vòng lặp for, biến đếm thường được khai báo với kiểu int."
+  },
+  {
+    "id": "fb3",
+    "title": "Hàm main",
+    "description": "Điền vào chỗ trống để khai báo hàm main đúng cách",
+    "difficulty": "Cơ bản",
+    "content": "Mọi chương trình Dart đều bắt đầu với hàm _____. Đây là điểm vào của chương trình.",
+    "blanks": [
+      {
+        "position": 7,
+        "correct_answer": "main",
+        "hint": "Tên hàm chính của Dart"
+      }
+    ],
+    "explanation": "Hàm main() là hàm chính mà Dart runtime sẽ gọi khi chạy chương trình."
+  },
+  {
+    "id": "fb4",
+    "title": "List trong Dart",
+    "description": "Điền vào chỗ trống về cách tạo List trong Dart",
+    "difficulty": "Trung bình",
+    "content": "Để tạo một List rỗng trong Dart, chúng ta có thể dùng cú pháp: var myList = _____;",
+    "blanks": [
+      {
+        "position": 13,
+        "correct_answer": "[]",
+        "hint": "Dấu ngoặc vuông để tạo List rỗng"
+      }
+    ],
+    "explanation": "Dấu [] được dùng để tạo một List rỗng trong Dart."
+  },
+  {
+    "id": "fb5",
+    "title": "Map trong Dart",
+    "description": "Điền vào chỗ trống về cách tạo Map trong Dart",
+    "difficulty": "Trung bình",
+    "content": "Để tạo một Map rỗng trong Dart, chúng ta dùng cú pháp: var myMap = _____;",
+    "blanks": [
+      {
+        "position": 12,
+        "correct_answer": "{}",
+        "hint": "Dấu ngoặc nhọn để tạo Map rỗng"
+      }
+    ],
+    "explanation": "Dấu {} được dùng để tạo một Map rỗng trong Dart."
+  },
+  {
+    "id": "fb6",
+    "title": "Toán tử so sánh",
+    "description": "Điền vào chỗ trống về toán tử so sánh bằng trong Dart",
+    "difficulty": "Cơ bản",
+    "content": "Trong Dart, toán tử so sánh bằng là _____, khác với toán tử gán =.",
+    "blanks": [
+      {
+        "position": 7,
+        "correct_answer": "==",
+        "hint": "Toán tử so sánh bằng"
+      }
+    ],
+    "explanation": "Toán tử == được dùng để so sánh bằng trong Dart, khác với = dùng để gán giá trị."
+  },
+  {
+    "id": "fb7",
+    "title": "Câu lệnh if",
+    "description": "Điền vào chỗ trống về cú pháp câu lệnh if trong Dart",
+    "difficulty": "Cơ bản",
+    "content": "Cú pháp câu lệnh if trong Dart: _____ (condition) { statements; }",
+    "blanks": [
+      {
+        "position": 6,
+        "correct_answer": "if",
+        "hint": "Từ khóa cho câu lệnh điều kiện"
+      }
+    ],
+    "explanation": "Từ khóa 'if' được dùng để bắt đầu câu lệnh điều kiện trong Dart."
+  },
+  {
+    "id": "fb8",
+    "title": "Biến final vs const",
+    "description": "Điền vào chỗ trống về sự khác biệt giữa final và const",
+    "difficulty": "Trung bình",
+    "content": "_____ được khởi tạo lúc runtime, trong khi const được khởi tạo lúc compile time.",
+    "blanks": [
+      {
+        "position": 0,
+        "correct_answer": "final",
+        "hint": "Từ khóa khai báo hằng số runtime"
+      }
+    ],
+    "explanation": "final cho phép khởi tạo lúc runtime, const yêu cầu khởi tạo lúc compile time."
+  },
+  {
+    "id": "fb9",
+    "title": "Async/Await",
+    "description": "Điền vào chỗ trống về cú pháp async/await trong Dart",
+    "difficulty": "Nâng cao",
+    "content": "Để sử dụng await trong hàm, hàm đó phải được khai báo với từ khóa _____.",
+    "blanks": [
+      {
+        "position": 12,
+        "correct_answer": "async",
+        "hint": "Từ khóa cho hàm bất đồng bộ"
+      }
+    ],
+    "explanation": "Từ khóa async đánh dấu hàm là bất đồng bộ và cho phép sử dụng await."
+  },
+  {
+    "id": "fb10",
+    "title": "Class trong Dart",
+    "description": "Điền vào chỗ trống về cách khai báo class trong Dart",
+    "difficulty": "Trung bình",
+    "content": "Để khai báo một class trong Dart, chúng ta sử dụng từ khóa _____.",
+    "blanks": [
+      {
+        "position": 10,
+        "correct_answer": "class",
+        "hint": "Từ khóa khai báo lớp"
+      }
+    ],
+    "explanation": "Từ khóa 'class' được dùng để khai báo một lớp trong Dart."
+  }
+]

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:code_text_field/code_text_field.dart';
-import 'package:highlight/languages/dart.dart';
-import 'package:flutter_highlight/themes/monokai-sublime.dart';
+import 'package:code_app/theme/app_theme.dart';
+import 'package:code_app/widgets/code_editor.dart';
+import 'package:code_app/services/dart_code_runner.dart';
 
 class PlaygroundScreen extends StatefulWidget {
   const PlaygroundScreen({super.key});
@@ -12,16 +12,15 @@ class PlaygroundScreen extends StatefulWidget {
 
 class _PlaygroundScreenState extends State<PlaygroundScreen>
     with AutomaticKeepAliveClientMixin {
-  late CodeController _codeController;
+  late TextEditingController _codeController;
   String _output = "";
   bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
-    _codeController = CodeController(
+    _codeController = TextEditingController(
       text: "void main() {\n  print('Chào mừng bạn đến với Dart!');\n  int a = 10;\n  int b = 20;\n  print('Tổng của \$a và \$b là: \${a + b}');\n}",
-      language: dart,
     );
   }
 
@@ -35,138 +34,254 @@ class _PlaygroundScreenState extends State<PlaygroundScreen>
   bool get wantKeepAlive => true;
 
   Future<void> _runCode() async {
-    final code = _codeController.text;
-    if (code.trim().isEmpty) return;
+    final code = _codeController.text.trim();
+    if (code.isEmpty) {
+      _showSnackBar('Vui lòng nhập code!', Colors.orange);
+      return;
+    }
 
     setState(() {
       _isLoading = true;
       _output = "";
     });
 
-    // Giả lập thời gian chạy code
-    await Future.delayed(const Duration(milliseconds: 500));
-
     try {
-      // Phân tích code đơn giản: tìm các dòng print('...') hoặc print("...")
-      final lines = code.split('\n');
-      final outputs = <String>[];
-
-      for (var line in lines) {
-        // Tìm vị trí của print(
-        int printIndex = line.indexOf('print(');
-        if (printIndex != -1) {
-          // Tìm nội dung bên trong ngoặc
-          int start = printIndex + 6; // sau 'print('
-          int end = line.indexOf(')', start);
-          if (end != -1) {
-            String content = line.substring(start, end).trim();
-            // Loại bỏ dấu nháy đơn hoặc kép ở đầu và cuối
-            if ((content.startsWith("'") && content.endsWith("'")) ||
-                (content.startsWith('"') && content.endsWith('"'))) {
-              content = content.substring(1, content.length - 1);
-              outputs.add(content);
-            } else {
-              // Nếu là biểu thức, thông báo
-              outputs.add("[Biểu thức] $content");
-            }
-          }
+      final executionResult = await DartCodeRunner.runCode(code);
+      setState(() {
+        _output = executionResult.stdout;
+        if (executionResult.stderr.isNotEmpty) {
+          _output += '\nSTDERR:\n${executionResult.stderr}';
         }
-      }
+        if (executionResult.error != null) {
+          _output += '\nERROR: ${executionResult.error}';
+        }
+        _isLoading = false;
+      });
 
-      if (outputs.isEmpty) {
-        _output = "Code chạy thành công (không có lệnh print nào).";
+      if (!executionResult.hasError) {
+        _showSnackBar('Code chạy thành công!', Colors.green);
       } else {
-        _output = outputs.join('\n');
+        _showSnackBar('Có lỗi trong code!', Colors.red);
       }
     } catch (e) {
-      _output = "Lỗi: $e";
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
+      setState(() {
+        _output = 'Lỗi: $e';
+        _isLoading = false;
+      });
+      _showSnackBar('Lỗi khi chạy code!', Colors.red);
     }
+  }
+
+  void _showSnackBar(String message, Color color) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: color,
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     super.build(context);
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Sân chơi Dart"),
+        title: Row(
+          children: [
+            Icon(Icons.code, color: AppTheme.primaryColor),
+            const SizedBox(width: 8),
+            const Text('CodeLearn'),
+          ],
+        ),
+        backgroundColor: Colors.white,
+        foregroundColor: AppTheme.primaryColor,
+        elevation: 0,
         actions: [
           IconButton(
-            icon: const Icon(Icons.delete_outline),
-            onPressed: () => _codeController.text = "void main() {\n  \n}",
-          )
+            icon: const Icon(Icons.clear),
+            onPressed: () {
+              _codeController.clear();
+              setState(() => _output = "");
+            },
+            tooltip: 'Xóa code',
+          ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(12.0),
+      body: Container(
+        color: AppTheme.lightBackground,
         child: Column(
           children: [
-            Expanded(
-              flex: 3,
-              child: Container(
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.blueGrey.withValues(alpha: 0.3)),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: CodeTheme(
-                  data: const CodeThemeData(styles: monokaiSublimeTheme),
-                  child: CodeField(
-                    controller: _codeController,
-                    textStyle: const TextStyle(fontFamily: 'monospace', fontSize: 14),
-                    expands: true,
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-            SizedBox(
-              width: double.infinity,
-              height: 50,
-              child: ElevatedButton.icon(
-                onPressed: _isLoading ? null : _runCode,
-                icon: _isLoading
-                    ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                    : const Icon(Icons.play_arrow),
-                label: Text(_isLoading ? "Đang thực thi..." : "CHẠY CODE"),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blueAccent,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-            const Align(
-              alignment: Alignment.centerLeft,
-              child: Text("Kết quả (Console):", style: TextStyle(fontWeight: FontWeight.bold)),
-            ),
-            const SizedBox(height: 6),
-            Expanded(
-              flex: 1,
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF1E1E1E),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: SingleChildScrollView(
-                  child: Text(
-                    _output.isEmpty ? "> Chờ thực thi..." : _output,
+            // Admin toolbar
+            Container(
+              padding: const EdgeInsets.all(16),
+              color: Colors.white,
+              child: Row(
+                children: [
+                  const Text(
+                    'Sân chơi Dart',
                     style: TextStyle(
-                      color: _output.startsWith("Lỗi") ? Colors.redAccent : Colors.greenAccent,
-                      fontFamily: 'monospace',
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.textPrimaryLight,
                     ),
                   ),
-                ),
+                  const SizedBox(width: 8),
+                  Container(
+                    decoration: BoxDecoration(
+                      gradient: AppTheme.buttonGradient,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: ElevatedButton.icon(
+                      onPressed: _isLoading ? null : _runCode,
+                      icon: _isLoading
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                              ),
+                            )
+                          : const Icon(Icons.play_arrow, size: 16),
+                      label: Text(_isLoading ? 'Đang chạy...' : 'Chạy code'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.transparent,
+                        shadowColor: Colors.transparent,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // Code editor and output
+            Expanded(
+              child: Row(
+                children: [
+                  // Code editor
+                  Expanded(
+                    flex: 1,
+                    child: Container(
+                      margin: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.05),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: Colors.grey[50],
+                              borderRadius: const BorderRadius.only(
+                                topLeft: Radius.circular(12),
+                                topRight: Radius.circular(12),
+                              ),
+                            ),
+                            child: const Row(
+                              children: [
+                                Icon(Icons.edit, color: AppTheme.primaryColor),
+                                SizedBox(width: 8),
+                                Text(
+                                  'Trình soạn thảo code',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: AppTheme.textPrimaryLight,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Expanded(
+                            child: CodeEditorWidget(
+                              controller: _codeController,
+                              hintText: 'Nhập code Dart của bạn...',
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  // Output
+                  Expanded(
+                    flex: 1,
+                    child: Container(
+                      margin: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.05),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: Colors.grey[50],
+                              borderRadius: const BorderRadius.only(
+                                topLeft: Radius.circular(12),
+                                topRight: Radius.circular(12),
+                              ),
+                            ),
+                            child: const Row(
+                              children: [
+                                Icon(Icons.terminal, color: AppTheme.primaryColor),
+                                SizedBox(width: 8),
+                                Text(
+                                  'Kết quả',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: AppTheme.textPrimaryLight,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Expanded(
+                            child: Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: const BoxDecoration(
+                                color: Color(0xFF1E1E1E),
+                                borderRadius: BorderRadius.only(
+                                  bottomLeft: Radius.circular(12),
+                                  bottomRight: Radius.circular(12),
+                                ),
+                              ),
+                              child: SingleChildScrollView(
+                                child: SelectableText(
+                                  _output.isEmpty ? 'Output sẽ hiển thị ở đây...' : _output,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontFamily: 'monospace',
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ],

@@ -13,7 +13,7 @@ class Question {
     return Question(
       questionText: json['questionText'] as String,
       options: List<String>.from(json['options'] as List<dynamic>),
-      correctAnswerIndex: json['correctAnswerIndex'] as int,
+      correctAnswerIndex: (json['correctAnswerIndex'] as num).toInt(),
     );
   }
 

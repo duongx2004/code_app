@@ -1,0 +1,79 @@
+[
+  {
+    "id": "python_quiz",
+    "title": "Quiz Python Cơ Bản",
+    "description": "Bài kiểm tra kiến thức cơ bản về ngôn ngữ Python",
+    "questions": [
+      {
+        "questionText": "Trong Python, kiểu dữ liệu nào sau đây được sử dụng để lưu trữ văn bản?",
+        "options": [
+          "int",
+          "str",
+          "float",
+          "bool"
+        ],
+        "correctAnswerIndex": 1
+      },
+      {
+        "questionText": "Từ khóa nào được sử dụng để bắt đầu một vòng lặp for trong Python?",
+        "options": [
+          "loop",
+          "for",
+          "repeat",
+          "while"
+        ],
+        "correctAnswerIndex": 1
+      },
+      {
+        "questionText": "Phương thức nào sau đây được sử dụng để thêm một phần tử vào cuối list trong Python?",
+        "options": [
+          "add()",
+          "insert()",
+          "append()",
+          "push()"
+        ],
+        "correctAnswerIndex": 2
+      },
+      {
+        "questionText": "Toán tử nào được sử dụng để so sánh bằng trong Python?",
+        "options": [
+          "=",
+          "==",
+          "!=",
+          "<>"
+        ],
+        "correctAnswerIndex": 1
+      },
+      {
+        "questionText": "Từ khóa nào được sử dụng để định nghĩa một hàm trong Python?",
+        "options": [
+          "function",
+          "def",
+          "define",
+          "func"
+        ],
+        "correctAnswerIndex": 1
+      },
+      {
+        "questionText": "Cú pháp nào sau đây đúng để tạo một dictionary rỗng trong Python?",
+        "options": [
+          "dict()",
+          "{}",
+          "[]",
+          "()"
+        ],
+        "correctAnswerIndex": 1
+      },
+      {
+        "questionText": "Câu lệnh nào được sử dụng để bắt exception trong Python?",
+        "options": [
+          "catch",
+          "except",
+          "throw",
+          "raise"
+        ],
+        "correctAnswerIndex": 1
+      }
+    ]
+  }
+]

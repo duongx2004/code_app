@@ -102,4 +102,8 @@ class AuthService {
       return false;
     }
   }
+
+  Future<String?> getCurrentUserEmail() async {
+    return await getLoggedInUser();
+  }
 }

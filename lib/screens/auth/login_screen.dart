@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:code_app/services/auth_service.dart';
+import 'package:code_app/services/progress_service.dart';
 import 'package:code_app/widgets/auth_page_shell.dart';
+import 'package:provider/provider.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -30,6 +32,10 @@ class _LoginScreenState extends State<LoginScreen> {
       setState(() => _isLoading = false);
 
       if (success) {
+        // Sync offline progress after successful login
+        final progressService = context.read<ProgressService>();
+        await progressService.onLogin(_emailController.text.trim());
+
         Navigator.pushReplacementNamed(context, '/home');
       } else {
         ScaffoldMessenger.of(context).showSnackBar(

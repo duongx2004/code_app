@@ -29,8 +29,8 @@ class AuthPageShell extends StatelessWidget {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              colorScheme.primary.withOpacity(0.18),
-              colorScheme.secondary.withOpacity(0.12),
+              colorScheme.primary.withValues(alpha: 0.18),
+              colorScheme.secondary.withValues(alpha: 0.12),
               colorScheme.surface,
             ],
           ),
@@ -40,17 +40,17 @@ class AuthPageShell extends StatelessWidget {
             Positioned(
               top: -40,
               left: -40,
-              child: _GlowCircle(color: colorScheme.primary.withOpacity(0.18), size: 180),
+              child: _GlowCircle(color: colorScheme.primary.withValues(alpha: 0.18), size: 180),
             ),
             Positioned(
               top: 100,
               right: -50,
-              child: _GlowCircle(color: colorScheme.tertiary.withOpacity(0.12), size: 140),
+              child: _GlowCircle(color: colorScheme.tertiary.withValues(alpha: 0.12), size: 140),
             ),
             Positioned(
               bottom: -30,
               left: -30,
-              child: _GlowCircle(color: colorScheme.secondary.withOpacity(0.14), size: 160),
+              child: _GlowCircle(color: colorScheme.secondary.withValues(alpha: 0.14), size: 160),
             ),
             SafeArea(
               child: Center(
@@ -69,7 +69,7 @@ class AuthPageShell extends StatelessWidget {
                             shape: BoxShape.circle,
                             boxShadow: [
                               BoxShadow(
-                                color: colorScheme.primary.withOpacity(0.25),
+                                color: colorScheme.primary.withValues(alpha: 0.25),
                                 blurRadius: 24,
                                 offset: const Offset(0, 12),
                               ),
@@ -106,7 +106,7 @@ class AuthPageShell extends StatelessWidget {
                         ),
                         const SizedBox(height: 28),
                         Material(
-                          color: colorScheme.surface.withOpacity(0.92),
+                          color: colorScheme.surface.withValues(alpha: 0.92),
                           elevation: 0,
                           shadowColor: Colors.black26,
                           borderRadius: BorderRadius.circular(28),
@@ -115,11 +115,11 @@ class AuthPageShell extends StatelessWidget {
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(28),
                               border: Border.all(
-                                color: colorScheme.outlineVariant.withOpacity(0.45),
+                                color: colorScheme.outlineVariant.withValues(alpha: 0.45),
                               ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withOpacity(0.05),
+                                  color: Colors.black.withValues(alpha: 0.05),
                                   blurRadius: 28,
                                   offset: const Offset(0, 14),
                                 ),

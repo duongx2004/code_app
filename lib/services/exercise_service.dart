@@ -1,17 +1,34 @@
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:code_app/models/exercise_model.dart';
 import 'package:code_app/services/backend_api.dart';
 
 class ExerciseService {
   static Future<List<DartExercise>> loadExercises() async {
     try {
+      // Try to fetch from API first
       final response = await BackendApi.get('/api/exercises');
       final exercisesJson = response['exercises'] as List<dynamic>? ?? [];
+      if (exercisesJson.isNotEmpty) {
+        return exercisesJson
+            .map((json) => DartExercise.fromJson(json as Map<String, dynamic>))
+            .toList();
+      }
+    } catch (e) {
+      // If API fails, fall back to local data
+      debugPrint("API failed, loading local exercise data: $e");
+    }
+
+    // Load from local JSON file as fallback
+    try {
+      final jsonString = await rootBundle.loadString('assets/data/exercises.json');
+      final exercisesJson = json.decode(jsonString) as List<dynamic>;
       return exercisesJson
           .map((json) => DartExercise.fromJson(json as Map<String, dynamic>))
           .toList();
     } catch (e) {
-      debugPrint("Error loading exercises from backend: $e");
+      debugPrint("Failed to load local exercise data: $e");
       return [];
     }
   }

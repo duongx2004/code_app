@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:code_app/theme/app_theme.dart';
 import 'package:code_app/models/exercise_model.dart';
 import 'package:code_app/screens/exercise_detail_screen.dart';
 import 'package:code_app/services/exercise_service.dart';
 import 'package:code_app/services/progress_service.dart';
+import 'package:code_app/widgets/common_widgets.dart';
 
 class ExerciseScreen extends StatefulWidget {
   const ExerciseScreen({super.key});
@@ -19,67 +21,6 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
   String selectedDifficulty = 'Tất cả';
   bool isLoading = true;
 
-  Color _getDifficultyColor(String difficulty) {
-    switch (difficulty.toLowerCase()) {
-      case 'cơ bản':
-        return Colors.green;
-      case 'trung bình':
-        return Colors.orange;
-      case 'nâng cao':
-        return Colors.red;
-      default:
-        return Colors.blue;
-    }
-  }
-
-  IconData _getExerciseIcon(String id) {
-    switch (id) {
-      case 'ex1':
-        return Icons.calculate;
-      case 'ex2':
-        return Icons.star;
-      case 'ex3':
-        return Icons.crop_square;
-      case 'ex4':
-        return Icons.trending_up;
-      case 'ex5':
-        return Icons.functions;
-      case 'ex6':
-        return Icons.verified;
-      case 'ex7':
-        return Icons.auto_graph;
-      default:
-        return Icons.code;
-    }
-  }
-
-  Future<void> _loadExercises() async {
-    setState(() => isLoading = true);
-    try {
-      final loaded = await ExerciseService.loadExercises();
-      setState(() {
-        exercises = loaded;
-        filteredExercises = loaded;
-        isLoading = false;
-      });
-    } catch (e) {
-      setState(() => isLoading = false);
-    }
-  }
-
-  void _filterExercises() {
-    setState(() {
-      filteredExercises = exercises.where((ex) {
-        final matchesSearch = _searchController.text.isEmpty ||
-            ex.title.toLowerCase().contains(_searchController.text.toLowerCase()) ||
-            ex.description.toLowerCase().contains(_searchController.text.toLowerCase());
-        final matchesDifficulty = selectedDifficulty == 'Tất cả' ||
-            ex.difficulty == selectedDifficulty;
-        return matchesSearch && matchesDifficulty;
-      }).toList();
-    });
-  }
-
   @override
   void initState() {
     super.initState();
@@ -93,382 +34,294 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
     super.dispose();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final progressService = context.watch<ProgressService>();
-    final completedCount = exercises
-        .where((exercise) => progressService.isExerciseCompleted(exercise.id))
-        .length;
-
-    return Scaffold(
-      backgroundColor: const Color(0xFFF6F8FC),
-      body: RefreshIndicator(
-        onRefresh: _loadExercises,
-        child: isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : CustomScrollView(
-                slivers: [
-                  SliverAppBar(
-                    expandedHeight: 140,
-                    floating: true,
-                    pinned: true,
-                    elevation: 0,
-                    backgroundColor: Colors.transparent,
-                    forceElevated: true,
-                    flexibleSpace: FlexibleSpaceBar(
-                      background: Container(
-                        decoration: const BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [Color(0xFF667eea), Color(0xFF764ba2)],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                        ),
-                        child: const SafeArea(
-                          child: Padding(
-                            padding: EdgeInsets.all(24),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  'Bài tập Dart',
-                                  style: TextStyle(
-                                    fontSize: 32,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                                SizedBox(height: 8),
-                                Text(
-                                  'Rèn luyện kỹ năng lập trình Dart qua các bài tập thực tế',
-                                  style: TextStyle(fontSize: 18, color: Colors.white70),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  SliverPadding(
-                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
-                    sliver: SliverToBoxAdapter(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const SizedBox(height: 18),
-                          TextField(
-                            controller: _searchController,
-                            decoration: InputDecoration(
-                              hintText: 'Tìm kiếm bài tập...',
-                              prefixIcon: Icon(Icons.search, color: Colors.grey.shade600),
-                              suffixIcon: _searchController.text.isNotEmpty
-                                  ? IconButton(
-                                      icon: const Icon(Icons.clear),
-                                      onPressed: () => _searchController.clear(),
-                                    )
-                                  : null,
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(25),
-                                borderSide: BorderSide(color: Colors.grey.shade300),
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(25),
-                                borderSide: BorderSide(color: Colors.grey.shade200),
-                              ),
-                              filled: true,
-                              fillColor: Colors.white,
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          SingleChildScrollView(
-                            scrollDirection: Axis.horizontal,
-                            child: Row(
-                              children: ['Tất cả', 'cơ bản', 'trung bình', 'nâng cao']
-                                  .map(
-                                    (diff) => Padding(
-                                      padding: const EdgeInsets.only(right: 8),
-                                      child: ChoiceChip(
-                                        label: Text(diff),
-                                        selected: selectedDifficulty == diff,
-                                        onSelected: (selected) {
-                                          setState(() {
-                                            selectedDifficulty = selected ? diff : selectedDifficulty;
-                                          });
-                                          _filterExercises();
-                                        },
-                                        selectedColor: _getDifficultyColor(diff).withValues(alpha: 0.12),
-                                        backgroundColor: Colors.white,
-                                        labelStyle: TextStyle(
-                                          color: selectedDifficulty == diff ? Colors.white : Colors.grey.shade800,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                    ),
-                                  )
-                                  .toList(),
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  '${filteredExercises.length} bài tập phù hợp • Đã hoàn thành $completedCount/${exercises.length}',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.grey.shade700,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              OutlinedButton.icon(
-                                onPressed: completedCount == 0
-                                    ? null
-                                    : () => _confirmResetProgress(context),
-                                icon: const Icon(Icons.restart_alt_rounded, size: 18),
-                                label: const Text('Xóa tiến độ'),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 20),
-                        ],
-                      ),
-                    ),
-                  ),
-                  SliverPadding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    sliver: filteredExercises.isEmpty
-                        ? SliverToBoxAdapter(
-                            child: Container(
-                              width: double.infinity,
-                              margin: const EdgeInsets.only(top: 4),
-                              padding: const EdgeInsets.all(20),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(20),
-                                border: Border.all(color: Colors.grey.shade200),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.04),
-                                    blurRadius: 12,
-                                    offset: const Offset(0, 6),
-                                  ),
-                                ],
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  Icon(Icons.search_off_rounded, size: 56, color: Colors.grey.shade400),
-                                  const SizedBox(height: 12),
-                                  Text(
-                                    'Không tìm thấy bài tập phù hợp',
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w700,
-                                      color: Colors.grey.shade800,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 6),
-                                  Text(
-                                    'Hãy thử đổi từ khóa tìm kiếm hoặc bộ lọc độ khó.',
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      color: Colors.grey.shade600,
-                                      height: 1.4,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          )
-                        : SliverList(
-                            delegate: SliverChildBuilderDelegate(
-                              childCount: filteredExercises.length,
-                              (context, index) => _buildExerciseCard(
-                                context,
-                                filteredExercises[index],
-                                progressService.isExerciseCompleted(
-                                  filteredExercises[index].id,
-                                ),
-                              ),
-                            ),
-                          ),
-                  ),
-                ],
-              ),
-      ),
-    );
-  }
-
-  Future<void> _confirmResetProgress(BuildContext context) async {
-    final shouldReset = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Xóa tiến độ bài tập?'),
-        content: const Text(
-          'Tất cả bài tập đã hoàn thành sẽ bị xóa trạng thái. Bạn có muốn làm lại từ đầu?',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Hủy'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text('Xóa tiến độ'),
-          ),
-        ],
-      ),
-    );
-
-    if (shouldReset == true && context.mounted) {
-      await context.read<ProgressService>().resetExerciseProgress();
-      if (!context.mounted) return;
+  Future<void> _loadExercises() async {
+    setState(() => isLoading = true);
+    try {
+      final loaded = await ExerciseService.loadExercises();
+      setState(() {
+        exercises = loaded;
+        filteredExercises = loaded;
+        isLoading = false;
+      });
+    } catch (e) {
+      setState(() => isLoading = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Đã xóa tiến độ bài tập. Bạn có thể làm lại từ đầu.'),
-        ),
+        SnackBar(content: Text('Lỗi tải bài tập: $e')),
       );
     }
   }
 
-  Widget _buildExerciseCard(
-    BuildContext context,
-    DartExercise exercise,
-    bool isCompleted,
-  ) {
-    final color = _getDifficultyColor(exercise.difficulty);
-    final icon = _getExerciseIcon(exercise.id);
+  void _filterExercises() {
+    final query = _searchController.text.toLowerCase();
+    setState(() {
+      filteredExercises = exercises.where((exercise) {
+        final matchesSearch = exercise.title.toLowerCase().contains(query) ||
+                             exercise.description.toLowerCase().contains(query);
+        final matchesDifficulty = selectedDifficulty == 'Tất cả' ||
+                                 exercise.difficulty == selectedDifficulty;
+        return matchesSearch && matchesDifficulty;
+      }).toList();
+    });
+  }
 
-    return AnimatedOpacity(
-      duration: const Duration(milliseconds: 220),
-      opacity: isCompleted ? 0.55 : 1,
-      child: Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [color.withValues(alpha: 0.08), Colors.white],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.grey.shade200),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
+  void _onDifficultyChanged(String difficulty) {
+    setState(() => selectedDifficulty = difficulty);
+    _filterExercises();
+  }
+
+  Future<void> _clearProgress() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Xóa tiến độ'),
+        content: const Text('Bạn có chắc muốn xóa toàn bộ tiến độ bài tập code?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Hủy'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Xóa'),
           ),
         ],
       ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(24),
-          onTap: () => Navigator.of(context)
-              .push(
-            MaterialPageRoute(
-              builder: (context) => ExerciseDetailScreen(exercise: exercise),
-            ),
-          )
-              .then((result) {
-            if (result == true && context.mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Đã hoàn thành: ${exercise.title}'),
-                  backgroundColor: const Color(0xFF16A34A),
+    );
+
+    if (confirmed == true) {
+      try {
+        await Provider.of<ProgressService>(context, listen: false).resetExerciseProgress();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Đã xóa tiến độ')),
+        );
+        setState(() {}); // Refresh to update completion status
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Lỗi: $e')),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final progressService = Provider.of<ProgressService>(context);
+    final completedCount = exercises.where((e) => progressService.isExerciseCompleted(e.id)).length;
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Row(
+          children: [
+            Icon(Icons.code, color: AppTheme.primaryColor),
+            const SizedBox(width: 8),
+            const Text('Bài tập'),
+          ],
+        ),
+        backgroundColor: Colors.white,
+        foregroundColor: AppTheme.primaryColor,
+        elevation: 0,
+        actions: [
+          IconButton(
+            icon: Icon(Icons.delete_sweep, color: AppTheme.primaryColor),
+            onPressed: _clearProgress,
+            tooltip: 'Xóa tiến độ',
+          ),
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: _loadExercises,
+          ),
+        ],
+      ),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              AppTheme.primaryColor.withOpacity(0.05),
+              AppTheme.lightBackground,
+            ],
+          ),
+        ),
+        child: Column(
+          children: [
+            // Header with progress
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: const BorderRadius.only(
+                  bottomLeft: Radius.circular(20),
+                  bottomRight: Radius.circular(20),
                 ),
-              );
-            }
-            if (mounted) {
-              setState(() {});
-            }
-          }),
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Row(
-              children: [
-                Container(
-                  width: 60,
-                  height: 60,
-                  decoration: BoxDecoration(
-                    color: color.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppTheme.primaryColor.withOpacity(0.1),
+                    blurRadius: 10,
+                    offset: const Offset(0, 2),
                   ),
-                  child: Icon(icon, color: color, size: 28),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
                     children: [
-                      Text(
-                        exercise.title,
-                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, height: 1.2),
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: AppTheme.primaryColor.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Icon(
+                          Icons.code,
+                          color: AppTheme.primaryColor,
+                          size: 24,
+                        ),
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        exercise.description.split('\n').first,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(fontSize: 14, color: Colors.grey.shade700, height: 1.4),
+                      const SizedBox(width: 12),
+                      const Expanded(
+                        child: Text(
+                          'Bài tập lập trình',
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.textPrimaryLight,
+                          ),
+                        ),
                       ),
                     ],
                   ),
-                ),
-                Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (isCompleted)
-                      Container(
-                        margin: const EdgeInsets.only(bottom: 8),
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF16A34A),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: const Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Icons.check, size: 12, color: Colors.white),
-                            SizedBox(width: 4),
-                            Text(
-                              'Đã xong',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 11,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: color,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        exercise.difficulty,
-                        style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600),
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey.shade600),
-                  ],
-                ),
-              ],
+                  const SizedBox(height: 20),
+                  ProgressCard(
+                    completed: completedCount,
+                    total: exercises.length,
+                    message: completedCount == exercises.length
+                        ? '🎉 Chúc mừng! Bạn đã hoàn thành tất cả bài tập!'
+                        : '💪 Tiếp tục cố gắng để hoàn thành khóa học!',
+                  ),
+                ],
+              ),
             ),
-          ),
+
+            const SizedBox(height: 8),
+
+            // Search and filters
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CustomSearchBar(
+                    controller: _searchController,
+                    hintText: 'Tìm kiếm bài tập...',
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Độ khó',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.textPrimaryLight,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  FilterChips(
+                    options: ['Tất cả', 'Cơ bản', 'Trung bình', 'Nâng cao'],
+                    selected: selectedDifficulty,
+                    onSelected: _onDifficultyChanged,
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 8),
+
+            // Exercises list
+            Expanded(
+              child: Container(
+                margin: const EdgeInsets.symmetric(horizontal: 16),
+                child: isLoading
+                    ? const Center(
+                        child: CircularProgressIndicator(
+                          valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
+                        ),
+                      )
+                    : filteredExercises.isEmpty
+                        ? Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.search_off,
+                                  size: 64,
+                                  color: Colors.grey[400],
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  'Không tìm thấy bài tập nào',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    color: Colors.grey[600],
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Thử thay đổi từ khóa tìm kiếm hoặc bộ lọc',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.grey[500],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                        : ListView.builder(
+                            padding: const EdgeInsets.only(top: 8, bottom: 16),
+                            itemCount: filteredExercises.length,
+                            itemBuilder: (context, index) {
+                              final exercise = filteredExercises[index];
+                              final isCompleted = progressService.isExerciseCompleted(exercise.id);
+
+                              return Container(
+                                margin: const EdgeInsets.only(bottom: 12),
+                                child: ExerciseCard(
+                                  title: exercise.title,
+                                  description: exercise.description,
+                                  difficulty: exercise.difficulty,
+                                  completedCount: 0, // Mock data - in real app this would be from service
+                                  isCompleted: isCompleted,
+                                  isSpecial: index == 0, // First exercise is special
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => ExerciseDetailScreen(exercise: exercise),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              );
+                            },
+                          ),
+              ),
+            ),
+          ],
         ),
-      ),
       ),
     );
   }

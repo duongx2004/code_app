@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:code_app/theme/app_theme.dart';
 
 class CodeEditorWidget extends StatefulWidget {
   final TextEditingController controller;
@@ -27,15 +28,11 @@ class _CodeEditorWidgetState extends State<CodeEditorWidget> {
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
-        gradient: const LinearGradient(
-          colors: [Color(0xFF0F172A), Color(0xFF111827)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: AppTheme.codeBackground,
         border: Border.all(color: const Color(0xFF334155)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
+            color: Colors.black.withValues(alpha: 0.08),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -51,7 +48,7 @@ class _CodeEditorWidgetState extends State<CodeEditorWidget> {
           fontFamily: 'Courier',
           fontSize: 13.5,
           height: 1.45,
-          color: Color(0xFFE2E8F0),
+          color: AppTheme.codeText,
         ),
         decoration: InputDecoration(
           hintText: widget.hintText,

@@ -3,29 +3,27 @@ import 'package:code_app/models/models.dart';
 import 'package:provider/provider.dart';
 import 'package:code_app/services/progress_service.dart';
 import 'package:code_app/theme/app_theme.dart';
+import 'package:code_app/widgets/custom_card.dart';
 
-class QuizScreen extends StatefulWidget {
-  final Lesson lesson;
-  const QuizScreen({super.key, required this.lesson});
+class QuizDetailScreen extends StatefulWidget {
+  final Quiz quiz;
+  const QuizDetailScreen({super.key, required this.quiz});
 
   @override
-  State<QuizScreen> createState() => _QuizScreenState();
+  State<QuizDetailScreen> createState() => _QuizDetailScreenState();
 }
 
-class _QuizScreenState extends State<QuizScreen> {
+class _QuizDetailScreenState extends State<QuizDetailScreen> {
   int currentQuestionIndex = 0;
   int score = 0;
-  bool _isCompleted = false;
 
   @override
   void initState() {
     super.initState();
-    _isCompleted = Provider.of<ProgressService>(context, listen: false)
-        .isCompleted(widget.lesson.id);
   }
 
   void checkAnswer(int selectedIndex) {
-    bool isCorrect = selectedIndex == widget.lesson.quiz[currentQuestionIndex].correctAnswerIndex;
+    bool isCorrect = selectedIndex == widget.quiz.questions[currentQuestionIndex].correctAnswerIndex;
 
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(
@@ -47,7 +45,7 @@ class _QuizScreenState extends State<QuizScreen> {
     }
 
     Future.delayed(const Duration(milliseconds: 800), () {
-      if (currentQuestionIndex < widget.lesson.quiz.length - 1) {
+      if (currentQuestionIndex < widget.quiz.questions.length - 1) {
         setState(() {
           currentQuestionIndex++;
         });
@@ -58,7 +56,7 @@ class _QuizScreenState extends State<QuizScreen> {
   }
 
   void showResult() {
-    final percentage = (score / widget.lesson.quiz.length * 100).round();
+    final percentage = (score / widget.quiz.questions.length * 100).round();
     final passed = percentage >= 70; // 70% to pass
 
     showDialog(
@@ -73,7 +71,7 @@ class _QuizScreenState extends State<QuizScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              'Điểm số: $score/${widget.lesson.quiz.length}',
+              'Điểm số: $score/${widget.quiz.questions.length}',
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               textAlign: TextAlign.center,
             ),
@@ -90,8 +88,8 @@ class _QuizScreenState extends State<QuizScreen> {
             const SizedBox(height: 16),
             Text(
               passed
-                  ? 'Bạn đã hoàn thành bài quiz thành công!'
-                  : 'Bạn cần đạt ít nhất 70% để qua bài quiz.',
+                  ? 'Bạn đã hoàn thành quiz thành công!'
+                  : 'Bạn cần đạt ít nhất 70% để qua quiz.',
               textAlign: TextAlign.center,
             ),
           ],
@@ -99,11 +97,10 @@ class _QuizScreenState extends State<QuizScreen> {
         actions: [
           TextButton(
             onPressed: () async {
-              if (passed && !_isCompleted) {
+              if (passed) {
                 try {
                   await Provider.of<ProgressService>(context, listen: false)
-                      .markAsCompleted(widget.lesson.id);
-                  setState(() => _isCompleted = true);
+                      .markQuizAsCompleted(widget.quiz.id);
                 } catch (e) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text('Lỗi khi lưu tiến độ: $e')),
@@ -111,7 +108,7 @@ class _QuizScreenState extends State<QuizScreen> {
                 }
               }
               Navigator.of(context).pop(); // Close dialog
-              Navigator.of(context).pop(); // Go back to lesson
+              Navigator.of(context).pop(); // Go back to quiz list
             },
             child: const Text('OK'),
           ),
@@ -122,11 +119,11 @@ class _QuizScreenState extends State<QuizScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final question = widget.lesson.quiz[currentQuestionIndex];
+    final question = widget.quiz.questions[currentQuestionIndex];
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Quiz - ${widget.lesson.title}'),
+        title: Text(widget.quiz.title),
         backgroundColor: AppTheme.primaryColor,
         foregroundColor: Colors.white,
       ),
@@ -137,21 +134,20 @@ class _QuizScreenState extends State<QuizScreen> {
           children: [
             // Progress indicator
             LinearProgressIndicator(
-              value: (currentQuestionIndex + 1) / widget.lesson.quiz.length,
+              value: (currentQuestionIndex + 1) / widget.quiz.questions.length,
               backgroundColor: Colors.grey[300],
               valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
             ),
             const SizedBox(height: 8),
             Text(
-              'Câu ${currentQuestionIndex + 1}/${widget.lesson.quiz.length}',
+              'Câu ${currentQuestionIndex + 1}/${widget.quiz.questions.length}',
               style: const TextStyle(fontSize: 14, color: Colors.grey),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
 
             // Question
-            Card(
-              elevation: 4,
+            CustomCard(
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Text(
@@ -201,7 +197,7 @@ class _QuizScreenState extends State<QuizScreen> {
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
-                'Điểm hiện tại: $score/${widget.lesson.quiz.length}',
+                'Điểm hiện tại: $score/${widget.quiz.questions.length}',
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w500,

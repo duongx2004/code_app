@@ -1,25 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:code_app/theme/app_theme.dart';
 import 'package:code_app/services/progress_service.dart';
 import 'package:code_app/services/auth_service.dart';
+import 'package:code_app/services/backend_api.dart';
+import 'package:code_app/screens/exercise_screen.dart';
 import 'package:code_app/screens/home_screen.dart';
 import 'package:code_app/screens/playground_screen.dart';
-import 'package:code_app/screens/exercise_screen.dart';
+import 'package:code_app/screens/admin_screen.dart';
+import 'package:code_app/screens/fill_blank_list_screen.dart';
 import 'package:code_app/screens/auth/login_screen.dart';
 import 'package:code_app/screens/auth/register_screen.dart';
 import 'package:code_app/screens/profile/edit_profile_screen.dart';
-import 'package:code_app/screens/admin_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => ProgressService()),
-      ],
-      child: const MyApp(),
-    ),
-  );
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -27,52 +23,62 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Học lập trình Dart',
-      theme: ThemeData(
-        useMaterial3: true,
-        colorSchemeSeed: Colors.blue,
-        appBarTheme: const AppBarTheme(
-          elevation: 0,
-          centerTitle: false,
-        ),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => ProgressService()),
+      ],
+      child: MaterialApp(
+        title: 'CodeLearn',
+        theme: AppTheme.lightTheme,
+        darkTheme: AppTheme.darkTheme,
+        themeMode: ThemeMode.system,
+        initialRoute: '/',
+        routes: {
+          '/': (context) => const AuthWrapper(),
+          '/login': (context) => const LoginScreen(),
+          '/register': (context) => const RegisterScreen(),
+          '/admin': (context) => const AdminScreen(),
+        },
+        debugShowCheckedModeBanner: false,
       ),
-      initialRoute: '/',
-      routes: {
-        '/': (context) => const AuthWrapper(),
-        '/home': (context) => const MainNavigation(),
-        '/login': (context) => const LoginScreen(),
-        '/register': (context) => const RegisterScreen(),
-        '/admin': (context) => const AdminScreen(),
-      },
     );
   }
 }
 
-class AuthWrapper extends StatelessWidget {
+class AuthWrapper extends StatefulWidget {
   const AuthWrapper({super.key});
 
   @override
+  State<AuthWrapper> createState() => _AuthWrapperState();
+}
+
+class _AuthWrapperState extends State<AuthWrapper> {
+  bool? _isLoggedIn;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkAuthStatus();
+  }
+
+  Future<void> _checkAuthStatus() async {
+    final isLoggedIn = await AuthService().isLoggedIn();
+    if (mounted) {
+      setState(() {
+        _isLoggedIn = isLoggedIn;
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return FutureBuilder<bool>(
-      future: AuthService().isLoggedIn(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Scaffold(body: Center(child: CircularProgressIndicator()));
-        }
-        
-        if (snapshot.data == true) {
-          // Khi người dùng đăng nhập thành công, làm mới ProgressService để tải dữ liệu của user đó
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            Provider.of<ProgressService>(context, listen: false).init();
-          });
-          return const MainNavigation();
-        } else {
-          return const LoginScreen();
-        }
-      },
-    );
+    if (_isLoggedIn == null) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    return _isLoggedIn! ? const MainNavigation() : const LoginScreen();
   }
 }
 
@@ -87,10 +93,11 @@ class _MainNavigationState extends State<MainNavigation> {
   int _currentIndex = 0;
   String? _displayName;
   bool _isAdmin = false;
-  final List<Widget> _screens = const [
-    ExerciseScreen(),
-    HomeScreen(),
-    PlaygroundScreen(),
+  final List<Widget> _screens = [
+    const ExerciseScreen(),
+    const HomeScreen(),
+    const FillBlankListScreen(),
+    const PlaygroundScreen(),
   ];
 
   @override
@@ -116,15 +123,8 @@ class _MainNavigationState extends State<MainNavigation> {
       appBar: AppBar(
         title: Row(
           children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: const Icon(Icons.school, size: 28),
-            ),
-            const SizedBox(width: 12),
+            Icon(Icons.code, color: AppTheme.primaryColor),
+            const SizedBox(width: 8),
             const Text(
               'CodeLearn',
               style: TextStyle(
@@ -134,28 +134,35 @@ class _MainNavigationState extends State<MainNavigation> {
             ),
           ],
         ),
+        backgroundColor: Colors.white,
+        foregroundColor: AppTheme.primaryColor,
+        elevation: 0,
         actions: [
           if (_displayName != null)
             Container(
               margin: const EdgeInsets.symmetric(horizontal: 8),
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.15),
+                color: AppTheme.primaryColor.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.person, size: 18),
+                  Icon(Icons.person, size: 18, color: AppTheme.primaryColor),
                   const SizedBox(width: 6),
                   Text(
                     _displayName!,
-                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: AppTheme.primaryColor,
+                    ),
                   ),
                 ],
               ),
             ),
           PopupMenuButton<String>(
-            icon: const Icon(Icons.more_vert),
+            icon: Icon(Icons.more_vert, color: AppTheme.primaryColor),
             onSelected: (value) async {
               if (value == 'profile') {
                 final updated = await Navigator.push<bool>(
@@ -171,8 +178,10 @@ class _MainNavigationState extends State<MainNavigation> {
                 }
               } else if (value == 'logout') {
                 await AuthService().logout();
+                BackendApi.setUserEmail(null);
+                Provider.of<ProgressService>(context, listen: false).onLogout();
                 if (mounted) {
-                  Navigator.pushReplacementNamed(context, '/');
+                  Navigator.of(context).pushReplacementNamed('/login');
                 }
               }
             },
@@ -181,9 +190,9 @@ class _MainNavigationState extends State<MainNavigation> {
                 value: 'profile',
                 child: Row(
                   children: [
-                    Icon(Icons.edit, size: 20),
+                    Icon(Icons.person, size: 20),
                     SizedBox(width: 12),
-                    Text('Chỉnh sửa hồ sơ'),
+                    Text('Hồ sơ'),
                   ],
                 ),
               ),
@@ -216,10 +225,39 @@ class _MainNavigationState extends State<MainNavigation> {
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: (index) => setState(() => _currentIndex = index),
+        selectedItemColor: AppTheme.primaryColor,
+        unselectedItemColor: AppTheme.textSecondaryLight,
+        backgroundColor: Colors.white,
+        elevation: 8,
+        type: BottomNavigationBarType.fixed,
+        selectedLabelStyle: const TextStyle(
+          fontWeight: FontWeight.w600,
+          fontSize: 12,
+        ),
+        unselectedLabelStyle: const TextStyle(
+          fontSize: 12,
+        ),
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.assignment), label: "Bài tập"),
-          BottomNavigationBarItem(icon: Icon(Icons.school), label: "Học tập"),
-          BottomNavigationBarItem(icon: Icon(Icons.code), label: "Playground"),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.assignment),
+            activeIcon: Icon(Icons.assignment, size: 28),
+            label: "Bài tập code",
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.school),
+            activeIcon: Icon(Icons.school, size: 28),
+            label: "Bài tập trắc nhiệm",
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.text_fields),
+            activeIcon: Icon(Icons.text_fields, size: 28),
+            label: "Điền chỗ trống",
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.code),
+            activeIcon: Icon(Icons.code, size: 28),
+            label: "Sân chơi dart",
+          ),
         ],
       ),
     );
