@@ -114,8 +114,8 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                             child: IconButton(
                               icon: Icon(Icons.delete_sweep, color: AppTheme.primaryColor, size: 20),
-                              onPressed: () => _clearQuizProgress(context, progressService),
-                              tooltip: 'Xóa tiến độ trắc nghiệm',
+                              onPressed: () => _clearLearningProgress(progressService),
+                              tooltip: 'Xóa tiến độ lộ trình học',
                               constraints: const BoxConstraints(
                                 minWidth: 40,
                                 minHeight: 40,
@@ -327,17 +327,17 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Future<void> _clearQuizProgress(BuildContext context, ProgressService progressService) async {
+  Future<void> _clearLearningProgress(ProgressService progressService) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: AppTheme.getSurfaceColor(context),
         title: Text(
-          'Xóa tiến độ trắc nghiệm',
+          'Xóa tiến độ lộ trình học',
           style: TextStyle(color: AppTheme.getTextPrimaryColor(context)),
         ),
         content: Text(
-          'Bạn có chắc muốn xóa toàn bộ tiến độ bài trắc nghiệm không? Hành động này không thể hoàn tác.',
+          'Bạn có chắc muốn xóa tiến độ lộ trình học không? Hành động này không thể hoàn tác.',
           style: TextStyle(color: AppTheme.getTextSecondaryColor(context)),
         ),
         actions: [
@@ -357,13 +357,12 @@ class _HomeScreenState extends State<HomeScreen> {
     );
 
     if (confirmed == true) {
-      await progressService.resetQuizProgress();
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Đã xóa tiến độ trắc nghiệm')),
-        );
-        setState(() {}); // Refresh UI
-      }
+      await progressService.resetProgress();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Đã xóa tiến độ lộ trình học')),
+      );
+      setState(() {}); // Refresh UI
     }
   }
 }

@@ -1,305 +1,442 @@
-# Code App - Ứng dụng Học Lập Trình Dart
+# 📚 CodeLearn - Ứng dụng Học Lập Trình Dart
 
 [![Flutter](https://img.shields.io/badge/Flutter-3.0+-02569B?style=flat&logo=flutter)](https://flutter.dev)
+[![Dart](https://img.shields.io/badge/Dart-3.0+-0175C2?style=flat&logo=dart)](https://dart.dev)
 [![Node.js](https://img.shields.io/badge/Node.js-16+-339933?style=flat&logo=node.js)](https://nodejs.org)
 [![MySQL](https://img.shields.io/badge/MySQL-8.0+-4479A1?style=flat&logo=mysql)](https://mysql.com)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-Ứng dụng học lập trình Dart toàn diện với giao diện trực quan, hỗ trợ đa nền tảng (Android, iOS, Web, Desktop). Kết hợp lý thuyết, thực hành code, quiz kiểm tra và sân chơi lập trình trực tiếp.
+Ứng dụng học lập trình **Dart** toàn diện với giao diện trực quan, hỗ trợ đa nền tảng (Android, iOS, Web, Desktop). Kết hợp **lý thuyết, thực hành code, quiz kiểm tra và sân chơi lập trình trực tiếp**.
 
-## ✨ Tính năng nổi bật
+---
 
-### 🎓 Học tập tương tác
-- **Bài học có cấu trúc**: Lý thuyết, code mẫu, bài tập thực hành
-- **Chạy code trực tiếp**: Xem kết quả code mẫu ngay trong bài học
-- **Quiz kiểm tra**: Đánh giá kiến thức với câu hỏi trắc nghiệm
-- **Tiến độ học tập**: Theo dõi bài học đã hoàn thành
+## ✨ Tính Năng Nổi Bật
 
-### 💻 Sân chơi lập trình (Playground)
-- **Soạn thảo code**: Editor với syntax highlighting
-- **Chạy code realtime**: Thực thi code Dart qua server backend
-- **Output trực quan**: Xem kết quả và lỗi ngay lập tức
-- **Hỗ trợ offline**: Chạy server local khi không có internet
+### 🎓 **Học Tập Tương Tác**
+- **Bài học có cấu trúc**: Lý thuyết chi tiết với code mẫu
+- **Chạy code trực tiếp**: Xem kết quả ngay trong bài học
+- **Theo dõi tiến độ**: Lưu trạng thái hoàn thành bài học
+- **Lộ trình học rõ ràng**: Danh sách bài học tuần tự
 
-### 📝 Hệ thống bài tập đa dạng
-- **Bài tập code**: Viết code giải quyết vấn đề với test cases
-- **Bài tập trắc nghiệm**: Câu hỏi đa lựa chọn với giải thích
+### 💻 **Bài Tập Đa Dạng**
+- **Bài tập code**: Viết code giải quyết bài toán với kiểm tra test case
+- **Bài tập trắc nghiệm**: Câu hỏi đa lựa chọn với giải thích chi tiết
 - **Bài tập điền chỗ trống**: Hoàn thành code với nhiều đáp án đúng
+- **Đánh giá tự động**: Kiểm tra kết quả ngay lập tức
 
-### 👨‍💼 Quản trị viên
+### 🎮 **Sân Chơi Lập Trình (Playground)**
+- **Editor code**: Soạn thảo với syntax highlighting
+- **Chạy code realtime**: Thực thi code Dart qua server backend
+- **Xem kết quả**: Output trực quan, dễ đọc
+- **Responsive layout**: Tự động điều chỉnh theo kích thước màn hình
+
+### 👨‍💼 **Quản Trị Viên**
 - **Quản lý người dùng**: Xem, chỉnh sửa, xóa tài khoản
 - **Quản lý nội dung**: Thêm/sửa bài học, bài tập
-- **Thống kê**: Theo dõi tiến độ học tập của users
+- **Thống kê tiến độ**: Theo dõi học tập của học sinh
 
-### 📱 Responsive Design
-- **Đa nền tảng**: Android, iOS, Web, Windows Desktop
-- **Adaptive UI**: Tự động điều chỉnh theo kích thước màn hình
-- **Touch & Mouse**: Hỗ trợ tương tác chuột và bàn phím
+### 📱 **Giao Diện Thân Thiện**
+- **Responsive Design**: Hoạt động trên mọi kích thước màn hình
+- **Dark Mode Support**: Giao diện sáng/tối tùy chỉnh
+- **Đa ngôn ngữ**: Hỗ trợ tiếng Việt
 
-## 🛠️ Công nghệ sử dụng
+---
 
-### Frontend (Flutter)
-- **Framework**: Flutter 3.0+
-- **Language**: Dart
-- **State Management**: Provider
-- **Storage**: SharedPreferences
-- **UI Components**: Material Design 3
-- **Code Editor**: code_text_field + flutter_highlight
-- **Networking**: HTTP client
+## 🛠️ Công Nghệ Sử Dụng
 
-### Backend (Node.js)
-- **Runtime**: Node.js 16+
-- **Server**: Express.js
-- **Database**: MySQL2
-- **Security**: CORS, Input validation
-- **Code Execution**: child_process (sandboxed)
+### Frontend - Flutter & Dart
+```
+✓ Framework: Flutter 3.0+
+✓ Language: Dart 3.0+
+✓ UI Design: Material Design 3
+✓ State Management: Provider
+✓ Local Storage: SharedPreferences
+✓ Code Editing: code_text_field + flutter_highlight
+✓ Networking: HTTP/REST APIs
+```
 
-### Database
-- **MySQL 8.0+**: Relational database
-- **Tables**: users, lessons, exercises, progress, etc.
+### Backend - Node.js
+```
+✓ Runtime: Node.js 16+
+✓ Web Server: Express.js
+✓ Code Execution: Child process (sandboxed)
+✓ Request Handling: CORS, Input validation
+✓ API: RESTful endpoints
+```
 
-## 📋 Yêu cầu hệ thống
+### Database - MySQL
+```
+✓ Database: MySQL 8.0+
+✓ Character Set: UTF-8MB4 (hỗ trợ tiếng Việt)
+✓ Tables: users, lessons, exercises, quiz, progress, etc.
+✓ Queries: Optimized for performance
+```
 
-- **Flutter SDK**: >= 3.0.0
-- **Dart SDK**: >= 2.19.0
-- **Node.js**: >= 16.0.0
-- **MySQL Server**: >= 8.0.0
-- **RAM**: 4GB minimum
-- **Storage**: 2GB free space
+---
 
-## 🚀 Cài đặt và chạy
+## 📁 Cấu Trúc Dự Án
 
-### 1. Chuẩn bị môi trường
+```
+code_app/
+│
+├── 📱 lib/                              # Flutter source code (Dart)
+│   ├── main.dart                        # Entry point
+│   ├── theme/
+│   │   └── app_theme.dart              # Styling & colors
+│   │
+│   ├── models/                          # Data models
+│   │   ├── lesson_model.dart
+│   │   ├── exercise_model.dart
+│   │   ├── quiz_model.dart
+│   │   ├── fill_blank_model.dart
+│   │   └── question_model.dart
+│   │
+│   ├── services/                        # API & Business logic
+│   │   ├── backend_api.dart            # HTTP client
+│   │   ├── auth_service.dart           # Authentication
+│   │   ├── lesson_service.dart
+│   │   ├── exercise_service.dart
+│   │   ├── quiz_service.dart
+│   │   ├── fill_blank_service.dart
+│   │   ├── dart_code_runner.dart       # Execute Dart code
+│   │   ├── progress_service.dart       # Track learning progress
+│   │   └── data_service.dart
+│   │
+│   ├── screens/                         # UI Pages
+│   │   ├── home_screen.dart            # Learning roadmap
+│   │   ├── lesson_detail_screen.dart   # Lesson content
+│   │   ├── exercise_screen.dart        # Code exercises list
+│   │   ├── exercise_detail_screen.dart # Code exercise editor
+│   │   ├── quiz_list_screen.dart       # Quiz list
+│   │   ├── quiz_detail_screen.dart     # Quiz taking
+│   │   ├── fill_blank_list_screen.dart # Fill-blank list
+│   │   ├── fill_blank_exercise_screen.dart # Fill-blank editor
+│   │   ├── playground_screen.dart      # Dart playground
+│   │   ├── admin_screen.dart           # Admin panel
+│   │   └── auth/
+│   │       ├── login_screen.dart
+│   │       └── register_screen.dart
+│   │
+│   ├── widgets/                         # Reusable components
+│   │   ├── code_editor.dart            # Code editor widget
+│   │   ├── common_widgets.dart         # Progress card, chips, etc.
+│   │   └── custom_card.dart
+│   │
+│   └── data/                            # Local assets
+│
+├── 🖥️ server/                          # Node.js Backend
+│   ├── run_dart_server.js              # Main server file
+│   ├── package.json                    # Dependencies
+│   ├── .env.example                    # Environment template
+│   └── data/                           # Static data
+│       └── sample_exercises.json
+│
+├── 🎨 assets/                          # Static assets
+│   └── data/
+│       ├── lessons.json                # Lesson data
+│       ├── exercises.json              # Exercise data
+│       ├── quizzes.json                # Quiz data
+│       └── fill_blank_exercises.json
+│
+├── 📊 build/                           # Build output (generated)
+│
+├── 🧪 test/                            # Unit tests
+│   ├── exercise_service_test.dart
+│   └── widget_test.dart
+│
+├── 📱 android/                         # Android specific config
+│
+├── 🍎 ios/                             # iOS specific config
+│
+├── 🖥️ windows/                         # Windows Desktop config
+│
+├── 🌐 web/                             # Web platform config
+│
+├── 📄 pubspec.yaml                     # Flutter dependencies
+├── 📖 README.md                        # This file
+└── ⚙️ analysis_options.yaml            # Lint rules
+
+```
+
+---
+
+## 🚀 Hướng Dẫn Cài Đặt & Chạy
+
+### 📋 Yêu Cầu Hệ Thống
+
+```
+✓ Flutter SDK >= 3.0.0
+✓ Dart SDK >= 3.0.0
+✓ Node.js >= 16.0.0
+✓ MySQL Server >= 8.0.0
+✓ RAM: 4GB minimum
+✓ Storage: 2GB free space
+```
+
+### 1️⃣ **Kiểm Tra Môi Trường**
 
 ```bash
-# Kiểm tra Flutter
+# Kiểm tra Flutter & Dart
 flutter doctor
 
 # Kiểm tra Node.js
-node --version && npm --version
+node --version
+npm --version
 
 # Kiểm tra MySQL
 mysql --version
 ```
 
-### 2. Clone và cài đặt
+### 2️⃣ **Clone & Cài Đặt Dependencies**
 
 ```bash
 # Clone repository
 git clone <repository-url>
-cd code_app
+cd "CD2 BTL"
 
-# Cài đặt Flutter dependencies
+# Cài đặt Flutter packages
 flutter pub get
 
-# Cài đặt Node.js dependencies
+# Cài đặt Node.js packages
 cd server
 npm install
 cd ..
 ```
 
-### 3. Cấu hình database
+### 3️⃣ **Cấu Hình Database**
+
+**Tạo database MySQL:**
 
 ```sql
--- Tạo database
+-- Đăng nhập MySQL
+mysql -u root -p
+
+-- Tạo database (UTF-8 support cho tiếng Việt)
 CREATE DATABASE code_app CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- Tạo user (tùy chọn)
-CREATE USER 'code_app'@'localhost' IDENTIFIED BY 'password';
+CREATE USER 'code_app'@'localhost' IDENTIFIED BY 'your_password';
 GRANT ALL PRIVILEGES ON code_app.* TO 'code_app'@'localhost';
 FLUSH PRIVILEGES;
+EXIT;
 ```
 
-### 4. Cấu hình biến môi trường
+### 4️⃣ **Cấu Hình Biến Môi Trường**
 
-Sao chép và chỉnh sửa file `server/.env`:
+**Tạo file `server/.env`:**
 
 ```env
-# Server config
+# Server Configuration
 PORT=8080
 HOST=0.0.0.0
 
-# Database config
+# MySQL Database
 MYSQL_HOST=127.0.0.1
 MYSQL_PORT=3306
 MYSQL_USER=root
 MYSQL_PASSWORD=your_password
 MYSQL_DATABASE=code_app
 
-# Admin account
+# Admin Account (tạo khi server khởi động)
 ADMIN_EMAIL=admin@admin.com
 ADMIN_PASSWORD=admin123
 
-# Dart SDK path (điều chỉnh theo hệ thống)
+# Dart SDK Path (tìm đường dẫn của Dart)
+# Windows: where dart
+# Linux/Mac: which dart
 DART_PATH=C:\flutter\bin\cache\dart-sdk\bin\dart.exe
 ```
 
 **Tìm đường dẫn Dart SDK:**
-- Windows: `where dart`
-- Linux/Mac: `which dart`
 
-### 5. Chạy server backend
+```bash
+# Windows (PowerShell)
+where dart
+
+# Linux/Mac
+which dart
+```
+
+### 5️⃣ **Chạy Server Backend**
 
 ```bash
 cd server
 node run_dart_server.js
 ```
 
-Server sẽ khởi động tại `http://localhost:8080`
+**Kết quả thành công:**
+```
+✓ Server running at http://localhost:8080
+✓ Database connected
+✓ API endpoints ready
+```
 
-### 6. Chạy ứng dụng Flutter
+### 6️⃣ **Chạy Ứng Dụng Flutter**
+
+**Terminal mới - chạy ứng dụng:**
 
 ```bash
-# Chạy trên thiết bị mặc định
+# Chạy trên thiết bị/emulator mặc định
 flutter run
 
-# Chạy trên Android
-flutter run -d android
+# Chạy trên Android Emulator
+flutter run -d emulator-5554
 
-# Chạy trên Web
+# Chạy trên Chrome (Web)
 flutter run -d chrome --web-renderer canvaskit
 
-# Chạy trên Windows
+# Chạy trên Windows Desktop
 flutter run -d windows
 ```
 
-## 📁 Cấu trúc dự án
+---
+
+## 📱 Các Platform Được Hỗ Trợ
+
+| Platform | Status | Lệnh Chạy |
+|----------|--------|-----------|
+| Android | ✅ | `flutter run -d android` |
+| iOS | ✅ | `flutter run -d ios` |
+| Web | ✅ | `flutter run -d chrome` |
+| Windows | ✅ | `flutter run -d windows` |
+| macOS | ✅ | `flutter run -d macos` |
+| Linux | ✅ | `flutter run -d linux` |
+
+---
+
+## 🔧 Các Tính Năng Chính Của Backend
+
+### API Endpoints
+
+| Method | Endpoint | Chức Năng |
+|--------|----------|----------|
+| `GET` | `/health` | Kiểm tra server |
+| `POST` | `/run_dart` | Chạy code Dart |
+| `POST` | `/api/auth/login` | Đăng nhập |
+| `POST` | `/api/auth/register` | Đăng ký |
+| `GET` | `/api/lessons` | Lấy danh sách bài học |
+| `POST` | `/api/exercises` | Tạo bài tập |
+| `GET` | `/api/progress` | Lấy tiến độ học |
+| `POST` | `/api/progress` | Lưu tiến độ |
+
+---
+
+## 🐛 Khắc Phục Sự Cố
+
+### ❌ Lỗi: Không kết nối server
 
 ```
-code_app/
-├── 📱 lib/                          # Flutter source code
-│   ├── 🏗️ models/                   # Data models
-│   ├── 🎨 screens/                  # UI screens
-│   │   ├── 🏠 home_screen.dart       # Home dashboard
-│   │   ├── 📖 lesson_screen.dart     # Lesson content
-│   │   ├── 💻 playground_screen.dart # Code playground
-│   │   ├── 👨‍💼 admin_screen.dart     # Admin panel
-│   │   └── 🔐 auth/                  # Authentication
-│   ├── 🔧 services/                 # API services
-│   ├── 🧱 widgets/                  # Reusable widgets
-│   │   ├── 📝 code_editor.dart       # Code editor widget
-│   │   └── 📊 responsive_scaffold.dart # Adaptive layout
-│   ├── 🎭 theme/                    # App theming
-│   └── 📦 main.dart                 # App entry point
-├── 🖥️ server/                       # Node.js backend
-│   ├── 🚀 run_dart_server.js       # Main server file
-│   ├── 📋 package.json             # Dependencies
-│   ├── ⚙️ .env                     # Environment config
-│   └── 🗄️ migrations/              # Database migrations
-├── 🎨 assets/                      # Static assets
-│   ├── 🖼️ images/                  # Images
-│   └── 📚 data/                    # JSON data files
-├── 📋 exercise_templates.json      # Exercise templates
-├── 📖 EXERCISE_TEMPLATES_README.md # Template usage guide
-├── 🧪 test/                        # Unit tests
-├── 📱 android/                     # Android config
-├── 🖥️ windows/                     # Windows config
-├── 🌐 web/                        # Web config
-└── 📄 README.md                    # This file
+Giải pháp:
+✓ Kiểm tra server chạy tại port 8080
+✓ Kiểm tra firewall cho phép port 8080
+✓ Kiểm tra cấu hình `.env` đúng
+✓ Restart server: Ctrl+C rồi chạy lại
 ```
 
-## 🔗 API Endpoints
+### ❌ Lỗi: Code Dart không chạy
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/health` | Health check |
-| `POST` | `/run_dart` | Execute Dart code |
-| `GET/POST` | `/api/auth/login` | User authentication |
-| `GET/POST` | `/api/users` | User management |
-| `GET/POST` | `/api/lessons` | Lesson management |
-| `GET/POST` | `/api/exercises` | Exercise management |
-| `GET/POST` | `/api/progress` | Progress tracking |
+```
+Giải pháp:
+✓ Kiểm tra DART_PATH trong .env chính xác
+✓ Chạy: dart --version (xem Dart SDK có tồn tại)
+✓ Trên Windows: dùng đường dẫn đầy đủ (C:\...)
+✓ Kiểm tra permissions của file Dart
+```
 
-## 📚 File mẫu bài tập
+### ❌ Lỗi: Không kết nối MySQL
 
-Dự án bao gồm các file mẫu và hướng dẫn:
+```
+Giải pháp:
+✓ Kiểm tra MySQL service chạy
+✓ Windows: Services.msc → MySQL80 (Start)
+✓ Linux: sudo service mysql start
+✓ Kiểm tra credentials trong .env
+✓ Chạy: mysql -u root -p (thử đăng nhập)
+```
 
-- **🔧 Code Exercises**: 10 mẫu bài tập lập trình với code mẫu hoàn chỉnh có thể chạy được
-- **📝 Quiz Questions**: 3 mẫu câu hỏi trắc nghiệm với giải thích
-- **📝 Fill Blank Exercises**: 2 mẫu bài tập điền chỗ trống
-- **📖 EXERCISE_TEMPLATES_README.md**: Hướng dẫn sử dụng các mẫu
-- **📋 EXERCISE_CREATION_GUIDE.md**: Hướng dẫn chi tiết cách điền thông tin tạo bài tập
+### ❌ Lỗi: Flutter không nhận Android emulator
 
-### Các bài tập lập trình có sẵn:
-1. **Hello World** - In ra "Hello, World!"
-2. **Tính tổng hai số** - Nhận 2 số, in tổng
-3. **Dãy Fibonacci** - In n số Fibonacci đầu tiên
-4. **Kiểm tra số nguyên tố** - Kiểm tra số nguyên tố
-5. **Đảo ngược chuỗi** - Đảo ngược chuỗi ký tự
-6. **Sắp xếp mảng** - Sắp xếp mảng số nguyên
-7. **Kiểm tra palindrome** - Chuỗi đối xứng
-8. **Tính giai thừa** - Tính n!
-9. **Tìm kiếm nhị phân** - Binary search
-10. **Nhân ma trận** - Nhân hai ma trận vuông
+```
+Giải pháp:
+✓ Mở Android Emulator trước
+✓ Chạy: flutter devices (xem danh sách)
+✓ Chạy: flutter run
+✓ Kiểm tra Android SDK PATH
+```
 
-### Cách import bài tập mẫu:
+---
 
+## 🏗️ Build Cho Production
+
+### Web Build
 ```bash
-# Chạy server backend trước
-cd server
-node run_dart_server.js
-
-# Trong terminal khác, import bài tập
-node import_exercises.js
-```
-
-Xem hướng dẫn chi tiết trong `EXERCISE_TEMPLATES_README.md` và `EXERCISE_CREATION_GUIDE.md`
-
-## 🏗️ Build cho Production
-
-```bash
-# Build Web
 flutter build web --web-renderer canvaskit
-
-# Build Windows
-flutter build windows
-
-# Build Android APK
-flutter build apk --release
-
-# Build iOS (trên macOS)
-flutter build ios --release
+# Output: build/web/
 ```
 
-## 🐛 Troubleshooting
+### Android APK
+```bash
+flutter build apk --release
+# Output: build/app/outputs/flutter-apk/app-release.apk
+```
 
-### Lỗi kết nối server
-- Kiểm tra server có chạy tại port 8080
-- Kiểm tra firewall không block port
-- Verify `.env` config đúng
+### Windows Installer
+```bash
+flutter build windows
+# Output: build/windows/runner/Release/
+```
 
-### Lỗi chạy code
-- Đảm bảo `DART_PATH` trong `.env` chính xác
-- Kiểm tra Dart SDK đã cài đặt
-- Test chạy `dart --version` trong terminal
+---
 
-### Lỗi database
-- Đảm bảo MySQL service đang chạy
-- Kiểm tra credentials trong `.env`
-- Verify database và tables đã tạo
+## 📚 Cấu Trúc Dữ Liệu
 
-## 🤝 Đóng góp
+### Database Tables
 
-1. Fork project
-2. Tạo feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to branch (`git push origin feature/AmazingFeature`)
-5. Tạo Pull Request
+**users**
+```
+id | email | password | display_name | is_admin | created_at
+```
 
-## 📄 License
+**lessons**
+```
+id | title | content | code_example | created_at
+```
 
-Distributed under the MIT License. See `LICENSE` for more information.
+**exercises**
+```
+id | title | description | difficulty | test_cases | created_at
+```
 
-## 👥 Tác giả
+**quiz**
+```
+id | title | description | questions | created_at
+```
 
-- **DuongX** - *Initial work* - [GitHub](https://github.com/duongx2004)
+**fill_blank_exercises**
+```
+id | title | content | blanks | difficulty | created_at
+```
 
-## 
+**user_progress**
+```
+user_email | lesson_id | exercise_id | type | completed | completed_at
+```
 
-- Flutter team for the amazing framework
-- Node.js community for the robust runtime
-- MySQL team for the reliable database
-- All contributors and users of this project
+---
+
+## 🤝 Hướng Dẫn Đóng Góp
+
+1. **Fork** project
+2. Tạo **feature branch** (`git checkout -b feature/YourFeature`)
+3. **Commit** thay đổi (`git commit -m 'Add YourFeature'`)
+4. **Push** branch (`git push origin feature/YourFeature`)
+5. Tạo **Pull Request**
+
+---
+
+## 👥 Tác Giả
+
+- [GitHub](https://github.com/duongx2004)
 
 ---
 

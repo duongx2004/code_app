@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter/services.dart';
 import 'package:code_app/models/exercise_model.dart';
 import 'package:code_app/services/dart_code_runner.dart';
 import 'package:code_app/services/progress_service.dart';
@@ -22,6 +23,8 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
   int passedTests = 0;
   int totalTests = 0;
   List<bool> testResults = [];
+  String stdoutOutput = '';
+  String stderrOutput = '';
   bool _isCompleted = false;
 
   @override
@@ -50,15 +53,16 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
     setState(() {
       isRunning = true;
       output = 'Đang chạy code...\n';
+      stdoutOutput = '';
+      stderrOutput = '';
     });
 
     try {
       final result = await DartCodeRunner.runCode(code);
       setState(() {
-        output = result.stdout;
-        if (result.stderr.isNotEmpty) {
-          output += '\nSTDERR:\n${result.stderr}';
-        }
+        stdoutOutput = result.stdout ?? '';
+        stderrOutput = result.stderr ?? '';
+        output = stdoutOutput + (stderrOutput.isNotEmpty ? '\nSTDERR:\n$stderrOutput' : '');
         if (result.error != null) {
           output += '\nERROR: ${result.error}';
         }
@@ -73,6 +77,8 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
     } catch (e) {
       setState(() {
         output = 'Lỗi: $e';
+        stdoutOutput = '';
+        stderrOutput = '';
         isRunning = false;
       });
       _showSnackBar('Lỗi khi chạy code!', Colors.red);
@@ -91,6 +97,8 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
       output = 'Đang chạy test...\n';
       passedTests = 0;
       testResults = List.generate(totalTests, (index) => false);
+      stdoutOutput = '';
+      stderrOutput = '';
     });
 
     try {
@@ -106,14 +114,16 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
       }
 
       setState(() {
+        stdoutOutput = result.stdout ?? '';
+        stderrOutput = result.stderr ?? '';
         output = 'Test Results:\n';
         for (int i = 0; i < totalTests; i++) {
           output += 'Test ${i + 1}: ${testResults[i] ? 'PASS' : 'FAIL'}\n';
         }
         if (!passed) {
-          output += '\nOutput: ${result.stdout}\n';
-          if (result.stderr.isNotEmpty) {
-            output += 'Errors: ${result.stderr}\n';
+          output += '\nOutput: ${stdoutOutput}\n';
+          if (stderrOutput.isNotEmpty) {
+            output += 'Errors: ${stderrOutput}\n';
           }
         }
         isRunning = false;
@@ -127,6 +137,11 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
         passed ? 'Tất cả test đều pass!' : '$passedTests/$totalTests test pass',
         passed ? Colors.green : Colors.orange,
       );
+      if (passed) {
+        Future.delayed(const Duration(milliseconds: 700), () {
+          if (mounted) Navigator.of(context).pop();
+        });
+      }
     } catch (e) {
       setState(() {
         output = 'Lỗi khi chạy test: $e';
@@ -208,76 +223,86 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
         ),
         child: Column(
           children: [
-            // Exercise info
-            Container(
-              margin: const EdgeInsets.all(16),
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Icon(
-                        _getDifficultyIcon(widget.exercise.difficulty),
-                        color: _getDifficultyColor(widget.exercise.difficulty),
-                        size: 24,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        'Độ khó: ${widget.exercise.difficulty}',
-                        style: TextStyle(
+            // Exercise info (constrained height to keep editor larger)
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxHeight: 220),
+              child: Container(
+                margin: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          _getDifficultyIcon(widget.exercise.difficulty),
                           color: _getDifficultyColor(widget.exercise.difficulty),
-                          fontWeight: FontWeight.w600,
-                          fontSize: 16,
+                          size: 22,
                         ),
-                      ),
-                      const Spacer(),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: AppTheme.primaryColor.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          'Test cases: $totalTests',
+                        const SizedBox(width: 8),
+                        Text(
+                          'Độ khó: ${widget.exercise.difficulty}',
                           style: TextStyle(
-                            color: AppTheme.primaryColor,
-                            fontWeight: FontWeight.w500,
+                            color: _getDifficultyColor(widget.exercise.difficulty),
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14,
+                          ),
+                        ),
+                        const Spacer(),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: AppTheme.primaryColor.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            'Test cases: $totalTests',
+                            style: TextStyle(
+                              color: AppTheme.primaryColor,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      widget.exercise.title,
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: AppTheme.textPrimaryLight,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 8),
+                    // Description scrolls when it's long so it won't push the editor down
+                    Expanded(
+                      child: SingleChildScrollView(
+                        child: Text(
+                          widget.exercise.description,
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: AppTheme.textSecondaryLight,
+                            height: 1.5,
                           ),
                         ),
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    widget.exercise.title,
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: AppTheme.textPrimaryLight,
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    widget.exercise.description,
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: AppTheme.textSecondaryLight,
-                      height: 1.5,
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
 
@@ -431,7 +456,7 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
                             child: Column(
                               children: [
                                 Container(
-                                  padding: const EdgeInsets.all(16),
+                                  padding: const EdgeInsets.all(12),
                                   decoration: BoxDecoration(
                                     color: Colors.grey[50],
                                     borderRadius: const BorderRadius.only(
@@ -465,27 +490,119 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
                                             ),
                                           ),
                                         ),
+                                      const SizedBox(width: 8),
+                                      IconButton(
+                                        onPressed: () {
+                                          setState(() {
+                                            output = '';
+                                            stdoutOutput = '';
+                                            stderrOutput = '';
+                                            passedTests = 0;
+                                          });
+                                        },
+                                        icon: const Icon(Icons.clear),
+                                        tooltip: 'Xóa kết quả',
+                                      ),
                                     ],
                                   ),
                                 ),
+                                // Pretty output area with separate panels
                                 Expanded(
                                   child: Container(
-                                    padding: const EdgeInsets.all(16),
+                                    padding: const EdgeInsets.all(12),
                                     decoration: const BoxDecoration(
-                                      color: Color(0xFF1E1E1E),
+                                      color: Color(0xFF0F1720),
                                       borderRadius: BorderRadius.only(
                                         bottomLeft: Radius.circular(12),
                                         bottomRight: Radius.circular(12),
                                       ),
                                     ),
                                     child: SingleChildScrollView(
-                                      child: Text(
-                                        output,
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontFamily: 'monospace',
-                                          fontSize: 14,
-                                        ),
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                                        children: [
+                                          // Test results badges
+                                          if (totalTests > 0)
+                                            Padding(
+                                              padding: const EdgeInsets.only(bottom: 12.0),
+                                              child: Wrap(
+                                                spacing: 8,
+                                                runSpacing: 8,
+                                                children: List.generate(totalTests, (i) {
+                                                  final passed = i < testResults.length ? testResults[i] : false;
+                                                  return Chip(
+                                                    backgroundColor: passed ? Colors.green[700] : Colors.red[700],
+                                                    label: Text('Test ${i + 1}', style: const TextStyle(color: Colors.white)),
+                                                    avatar: Icon(passed ? Icons.check : Icons.close, color: Colors.white, size: 18),
+                                                  );
+                                                }),
+                                              ),
+                                            ),
+
+                                          // Stdout panel
+                                          if (stdoutOutput.isNotEmpty)
+                                            Container(
+                                              margin: const EdgeInsets.only(bottom: 12),
+                                              padding: const EdgeInsets.all(12),
+                                              decoration: BoxDecoration(
+                                                color: const Color(0xFF0B1220),
+                                                borderRadius: BorderRadius.circular(8),
+                                                border: Border.all(color: Colors.white12),
+                                              ),
+                                              child: Column(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: [
+                                                  Row(
+                                                    children: [
+                                                      const Text('Output', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                                                      const Spacer(),
+                                                      IconButton(
+                                                        onPressed: () async {
+                                                          await Clipboard.setData(ClipboardData(text: stdoutOutput));
+                                                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Đã sao chép output')));
+                                                        },
+                                                        icon: const Icon(Icons.copy, color: Colors.white70),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  const SizedBox(height: 8),
+                                                  SelectableText(
+                                                    stdoutOutput,
+                                                    style: const TextStyle(color: Colors.white70, fontFamily: 'monospace'),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+
+                                          // Stderr panel
+                                          if (stderrOutput.isNotEmpty)
+                                            Container(
+                                              margin: const EdgeInsets.only(bottom: 12),
+                                              padding: const EdgeInsets.all(12),
+                                              decoration: BoxDecoration(
+                                                color: Colors.red[900],
+                                                borderRadius: BorderRadius.circular(8),
+                                              ),
+                                              child: Column(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: [
+                                                  const Text('Errors', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                                                  const SizedBox(height: 8),
+                                                  SelectableText(
+                                                    stderrOutput,
+                                                    style: const TextStyle(color: Colors.white, fontFamily: 'monospace'),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+
+                                          // Fallback: plain output text
+                                          if (stdoutOutput.isEmpty && stderrOutput.isEmpty)
+                                            SelectableText(
+                                              output,
+                                              style: const TextStyle(color: Colors.white70, fontFamily: 'monospace'),
+                                            ),
+                                        ],
                                       ),
                                     ),
                                   ),

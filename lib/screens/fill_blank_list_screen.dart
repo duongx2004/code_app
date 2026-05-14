@@ -130,10 +130,14 @@ class _FillBlankListScreenState extends State<FillBlankListScreen> {
             ],
           ),
         ),
-        child: Column(
-          children: [
+        child: SafeArea(
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 980),
+              child: Column(
+                children: [
             Container(
-              margin: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+              margin: const EdgeInsets.fromLTRB(16, 10, 16, 8),
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
                 color: Colors.white,
@@ -241,10 +245,51 @@ class _FillBlankListScreenState extends State<FillBlankListScreen> {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  FilterChips(
-                    options: ['Tất cả', 'Cơ bản', 'Trung bình', 'Nâng cao'],
-                    selected: selectedDifficulty,
-                    onSelected: (difficulty) => setState(() => selectedDifficulty = difficulty),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: AppTheme.primaryColor.withOpacity(0.07),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      children: ['Tất cả', 'Cơ bản', 'Trung bình', 'Nâng cao']
+                          .map(
+                            (option) => Expanded(
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 2),
+                                child: ChoiceChip(
+                                  label: Center(
+                                    child: Text(
+                                      option,
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: selectedDifficulty == option
+                                            ? FontWeight.w700
+                                            : FontWeight.w500,
+                                        color: selectedDifficulty == option
+                                            ? Colors.white
+                                            : AppTheme.primaryColor,
+                                      ),
+                                    ),
+                                  ),
+                                  selected: selectedDifficulty == option,
+                                  showCheckmark: false,
+                                  selectedColor: AppTheme.primaryColor,
+                                  backgroundColor: Colors.transparent,
+                                  side: BorderSide.none,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  onSelected: (_) =>
+                                      setState(() => selectedDifficulty = option),
+                                ),
+                              ),
+                            ),
+                          )
+                          .toList(),
+                    ),
                   ),
                 ],
               ),
@@ -356,7 +401,10 @@ class _FillBlankListScreenState extends State<FillBlankListScreen> {
                               },
                             ),
             ),
-          ],
+                ],
+              ),
+            ),
+          ),
         ),
       ),
     );

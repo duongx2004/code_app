@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:code_app/services/progress_service.dart';
 import 'package:code_app/theme/app_theme.dart';
 import 'package:code_app/widgets/custom_card.dart';
+import 'package:code_app/main.dart';
 
 class QuizDetailScreen extends StatefulWidget {
   final Quiz quiz;
@@ -107,8 +108,13 @@ class _QuizDetailScreenState extends State<QuizDetailScreen> {
                   );
                 }
               }
-              Navigator.of(context).pop(); // Close dialog
-              Navigator.of(context).pop(); // Go back to quiz list
+              // Close dialog
+              Navigator.of(context).pop();
+              // Replace whole stack with MainNavigation and open Home tab (index 1)
+              Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(builder: (c) => const MainNavigation(initialIndex: 1)),
+                (route) => false,
+              );
             },
             child: const Text('OK'),
           ),

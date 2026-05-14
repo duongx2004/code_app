@@ -174,6 +174,12 @@ async function initDatabase() {
     exercises TEXT NOT NULL DEFAULT '[]'
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`);
 
+  try {
+    await query("ALTER TABLE lessons ADD COLUMN exercises TEXT NOT NULL DEFAULT '[]'");
+  } catch (error) {
+    // ignore if the column already exists or migration is not needed
+  }
+
   // Thêm bảng cho tiến độ người dùng
   await query(`CREATE TABLE IF NOT EXISTS user_progress (
     user_email VARCHAR(255) NOT NULL,

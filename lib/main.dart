@@ -83,7 +83,8 @@ class _AuthWrapperState extends State<AuthWrapper> {
 }
 
 class MainNavigation extends StatefulWidget {
-  const MainNavigation({super.key});
+  final int initialIndex;
+  const MainNavigation({super.key, this.initialIndex = 0});
 
   @override
   State<MainNavigation> createState() => _MainNavigationState();
@@ -104,6 +105,8 @@ class _MainNavigationState extends State<MainNavigation> {
   void initState() {
     super.initState();
     _loadDisplayName();
+    // apply initialIndex from widget
+    _currentIndex = widget.initialIndex;
   }
 
   Future<void> _loadDisplayName() async {

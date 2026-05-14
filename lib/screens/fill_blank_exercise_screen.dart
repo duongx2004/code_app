@@ -155,7 +155,13 @@ class _FillBlankExerciseScreenState extends State<FillBlankExerciseScreen> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () {
+              Navigator.of(context).pop();
+              if (result.completed) {
+                // Go back to the list screen when exercise completed
+                Navigator.of(context).pop();
+              }
+            },
             child: const Text('OK'),
           ),
         ],

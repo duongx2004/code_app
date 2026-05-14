@@ -150,10 +150,14 @@ class _QuizListScreenState extends State<QuizListScreen> {
             ],
           ),
         ),
-        child: Column(
-          children: [
+        child: SafeArea(
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 980),
+              child: Column(
+                children: [
             Container(
-              margin: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+              margin: const EdgeInsets.fromLTRB(16, 10, 16, 8),
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               decoration: BoxDecoration(
                 color: Colors.white,
@@ -456,7 +460,10 @@ class _QuizListScreenState extends State<QuizListScreen> {
                           ),
                 ),
               ),
-          ],
+                ],
+              ),
+            ),
+          ),
         ),
       ),
     );
