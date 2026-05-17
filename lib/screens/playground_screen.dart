@@ -93,7 +93,13 @@ class _PlaygroundScreenState extends State<PlaygroundScreen>
           children: [
             Icon(Icons.code, color: AppTheme.primaryColor),
             const SizedBox(width: 8),
-            const Text('CodeLearn'),
+            Expanded(
+              child: Text(
+                'CodeLearn',
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(),
+              ),
+            ),
           ],
         ),
         backgroundColor: Colors.white,
@@ -124,12 +130,12 @@ class _PlaygroundScreenState extends State<PlaygroundScreen>
         child: SafeArea(
           child: Center(
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 1100),
+              constraints: const BoxConstraints(minWidth: 400, maxWidth: 1100),
               child: Column(
                 children: [
                   Container(
-                    margin: const EdgeInsets.fromLTRB(16, 10, 16, 8),
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    margin: const EdgeInsets.fromLTRB(8, 8, 8, 6),
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(16),

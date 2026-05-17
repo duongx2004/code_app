@@ -117,7 +117,13 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
           children: [
             Icon(Icons.code, color: AppTheme.primaryColor),
             const SizedBox(width: 8),
-            const Text('Bài tập'),
+            Expanded(
+              child: Text(
+                'Bài tập',
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(),
+              ),
+            ),
           ],
         ),
         backgroundColor: Colors.white,
@@ -149,12 +155,12 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
         child: SafeArea(
           child: Center(
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 980),
+                constraints: const BoxConstraints(minWidth: 400, maxWidth: 980),
               child: Column(
                 children: [
             Container(
-              margin: const EdgeInsets.fromLTRB(16, 10, 16, 8),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              margin: const EdgeInsets.fromLTRB(8, 8, 8, 6),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(16),
@@ -236,8 +242,8 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
 
             // Search and filters
             Container(
-              margin: const EdgeInsets.symmetric(horizontal: 16),
-              padding: const EdgeInsets.all(14),
+              margin: const EdgeInsets.symmetric(horizontal: 8),
+              padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(16),
@@ -280,7 +286,7 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
             // Exercises list
             Expanded(
               child: Container(
-                margin: const EdgeInsets.symmetric(horizontal: 16),
+                margin: const EdgeInsets.symmetric(horizontal: 8),
                 child: isLoading
                     ? const Center(
                         child: CircularProgressIndicator(

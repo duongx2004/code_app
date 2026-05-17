@@ -4,6 +4,7 @@ import 'package:code_app/theme/app_theme.dart';
 import 'package:code_app/services/progress_service.dart';
 import 'package:code_app/services/auth_service.dart';
 import 'package:code_app/services/backend_api.dart';
+import 'package:code_app/services/theme_controller.dart';
 import 'package:code_app/screens/exercise_screen.dart';
 import 'package:code_app/screens/home_screen.dart';
 import 'package:code_app/screens/playground_screen.dart';
@@ -26,20 +27,25 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => ProgressService()),
+        ChangeNotifierProvider(create: (_) => ThemeController()),
       ],
-      child: MaterialApp(
-        title: 'CodeLearn',
-        theme: AppTheme.lightTheme,
-        darkTheme: AppTheme.darkTheme,
-        themeMode: ThemeMode.system,
-        initialRoute: '/',
-        routes: {
-          '/': (context) => const AuthWrapper(),
-          '/login': (context) => const LoginScreen(),
-          '/register': (context) => const RegisterScreen(),
-          '/admin': (context) => const AdminScreen(),
+      child: Consumer<ThemeController>(
+        builder: (context, themeController, _) {
+          return MaterialApp(
+            title: 'CodeLearn',
+            theme: AppTheme.lightTheme,
+            darkTheme: AppTheme.darkTheme,
+            themeMode: themeController.themeMode,
+            initialRoute: '/',
+            routes: {
+              '/': (context) => const AuthWrapper(),
+              '/login': (context) => const LoginScreen(),
+              '/register': (context) => const RegisterScreen(),
+              '/admin': (context) => const AdminScreen(),
+            },
+            debugShowCheckedModeBanner: false,
+          );
         },
-        debugShowCheckedModeBanner: false,
       ),
     );
   }
@@ -128,11 +134,14 @@ class _MainNavigationState extends State<MainNavigation> {
           children: [
             Icon(Icons.code, color: AppTheme.primaryColor),
             const SizedBox(width: 8),
-            const Text(
-              'CodeLearn',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 20,
+            Expanded(
+              child: Text(
+                'CodeLearn',
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 20,
+                ),
               ),
             ),
           ],

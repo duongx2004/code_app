@@ -18,6 +18,381 @@ class _AdminScreenState extends State<AdminScreen> {
   bool _isLoading = true;
   String? _error;
 
+  static const List<String> _fillBlankDifficultyOptions = [
+    'cơ bản',
+    'trung bình',
+    'nâng cao',
+  ];
+
+  String _normalizeFillBlankDifficulty(String? value) {
+    final normalized = value?.trim().toLowerCase() ?? '';
+    for (final option in _fillBlankDifficultyOptions) {
+      if (normalized == option) {
+        return option;
+      }
+    }
+    return _fillBlankDifficultyOptions.first;
+  }
+
+  List<_FillBlankDraftRow> _buildFillBlankRows(Map<String, dynamic>? exercise) {
+    final blanks = exercise?['blanks'];
+    if (blanks is List && blanks.isNotEmpty) {
+      return blanks.map((blank) {
+        final blankMap = blank is Map
+            ? Map<String, dynamic>.from(blank as Map)
+            : <String, dynamic>{};
+        final correctAnswers = blankMap['correctAnswers'];
+
+        String answer = '';
+        if (correctAnswers is List && correctAnswers.isNotEmpty) {
+          answer = correctAnswers.first?.toString() ?? '';
+        } else if (blankMap['correct_answer'] != null) {
+          answer = blankMap['correct_answer'].toString();
+        } else if (blankMap['answer'] != null) {
+          answer = blankMap['answer'].toString();
+        }
+
+        return _FillBlankDraftRow(
+          answer: answer,
+          hint: blankMap['hint']?.toString() ?? '',
+        );
+      }).toList();
+    }
+
+    return [_FillBlankDraftRow()];
+  }
+
+  List<Map<String, dynamic>> _serializeFillBlankRows(List<_FillBlankDraftRow> rows) {
+    return rows.asMap().entries.map((entry) {
+      final index = entry.key;
+      final row = entry.value;
+      final answer = row.answerController.text.trim();
+      final hint = row.hintController.text.trim();
+
+      return {
+        'index': index,
+        'position': index,
+        'answer': answer,
+        'correct_answer': answer,
+        'correctAnswers': [answer],
+        'hint': hint.isEmpty ? null : hint,
+      };
+    }).toList();
+  }
+
+  Future<void> _openFillBlankDialog({Map<String, dynamic>? exercise}) async {
+    final isEditing = exercise != null;
+    final id = exercise?['id']?.toString() ?? '';
+    final titleController = TextEditingController(text: exercise?['title']?.toString() ?? '');
+    final contentController = TextEditingController(text: exercise?['content']?.toString() ?? '');
+    final hintController = TextEditingController(text: exercise?['hint']?.toString() ?? '');
+    String selectedDifficulty = _normalizeFillBlankDifficulty(exercise?['difficulty']?.toString());
+    final blankRows = _buildFillBlankRows(exercise);
+
+    try {
+      await showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => StatefulBuilder(
+          builder: (context, setDialogState) => Dialog(
+            backgroundColor: AppTheme.getSurfaceColor(context),
+            child: Container(
+              width: 780,
+              constraints: const BoxConstraints(maxHeight: 860),
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      isEditing ? 'Sửa bài tập điền chỗ trống' : 'Tạo bài tập điền chỗ trống',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: AppTheme.getTextPrimaryColor(context),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Mỗi chỗ trống bên dưới sẽ được lưu theo thứ tự và tương thích với dữ liệu bài tập hiện có.',
+                      style: TextStyle(
+                        color: AppTheme.getTextSecondaryColor(context),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    TextField(
+                      controller: titleController,
+                      decoration: InputDecoration(
+                        labelText: 'Tiêu đề *',
+                        prefixIcon: Icon(Icons.title, color: AppTheme.primaryColor),
+                        labelStyle: TextStyle(color: AppTheme.getTextSecondaryColor(context)),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      style: TextStyle(color: AppTheme.getTextPrimaryColor(context)),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: contentController,
+                      decoration: InputDecoration(
+                        labelText: 'Nội dung *',
+                        hintText: 'Ví dụ: Trong Dart, từ khóa _____ dùng để khai báo biến.',
+                        prefixIcon: Icon(Icons.description, color: AppTheme.primaryColor),
+                        labelStyle: TextStyle(color: AppTheme.getTextSecondaryColor(context)),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      style: TextStyle(color: AppTheme.getTextPrimaryColor(context)),
+                      maxLines: 5,
+                    ),
+                    const SizedBox(height: 12),
+                    DropdownButtonFormField<String>(
+                      value: selectedDifficulty,
+                      decoration: InputDecoration(
+                        labelText: 'Độ khó *',
+                        prefixIcon: Icon(Icons.trending_up, color: AppTheme.primaryColor),
+                        labelStyle: TextStyle(color: AppTheme.getTextSecondaryColor(context)),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      dropdownColor: AppTheme.getSurfaceColor(context),
+                      items: _fillBlankDifficultyOptions
+                          .map(
+                            (difficulty) => DropdownMenuItem(
+                              value: difficulty,
+                              child: Text(
+                                difficulty,
+                                style: TextStyle(color: AppTheme.getTextPrimaryColor(context)),
+                              ),
+                            ),
+                          )
+                          .toList(),
+                      onChanged: (value) {
+                        if (value == null) return;
+                        setDialogState(() {
+                          selectedDifficulty = value;
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: hintController,
+                      decoration: InputDecoration(
+                        labelText: 'Gợi ý chung',
+                        hintText: 'Không bắt buộc',
+                        prefixIcon: Icon(Icons.lightbulb, color: AppTheme.primaryColor),
+                        labelStyle: TextStyle(color: AppTheme.getTextSecondaryColor(context)),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      style: TextStyle(color: AppTheme.getTextPrimaryColor(context)),
+                      maxLines: 3,
+                    ),
+                    const SizedBox(height: 20),
+                    Row(
+                      children: [
+                        Text(
+                          'Danh sách chỗ trống',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.getTextPrimaryColor(context),
+                          ),
+                        ),
+                        const Spacer(),
+                        TextButton.icon(
+                          onPressed: () {
+                            setDialogState(() {
+                              blankRows.add(_FillBlankDraftRow());
+                            });
+                          },
+                          icon: const Icon(Icons.add),
+                          label: const Text('Thêm chỗ trống'),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    if (blankRows.isEmpty)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        child: Text(
+                          'Chưa có chỗ trống nào.',
+                          style: TextStyle(color: AppTheme.getTextSecondaryColor(context)),
+                        ),
+                      ),
+                    ...List.generate(blankRows.length, (index) {
+                      final row = blankRows[index];
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: Card(
+                          color: AppTheme.getSurfaceColor(context),
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            side: BorderSide(
+                              color: AppTheme.getTextSecondaryColor(context).withOpacity(0.18),
+                            ),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Text(
+                                      'Chỗ trống ${index + 1}',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w700,
+                                        color: AppTheme.getTextPrimaryColor(context),
+                                      ),
+                                    ),
+                                    const Spacer(),
+                                    if (blankRows.length > 1)
+                                      IconButton(
+                                        tooltip: 'Xóa chỗ trống',
+                                        onPressed: () {
+                                          setDialogState(() {
+                                            row.dispose();
+                                            blankRows.removeAt(index);
+                                          });
+                                        },
+                                        icon: Icon(Icons.delete_outline, color: AppTheme.errorColor),
+                                      ),
+                                  ],
+                                ),
+                                const SizedBox(height: 8),
+                                TextField(
+                                  controller: row.answerController,
+                                  decoration: InputDecoration(
+                                    labelText: 'Đáp án đúng *',
+                                    hintText: 'Ví dụ: var, String, main, []',
+                                    labelStyle: TextStyle(color: AppTheme.getTextSecondaryColor(context)),
+                                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                                  ),
+                                  style: TextStyle(color: AppTheme.getTextPrimaryColor(context)),
+                                ),
+                                const SizedBox(height: 12),
+                                TextField(
+                                  controller: row.hintController,
+                                  decoration: InputDecoration(
+                                    labelText: 'Gợi ý cho chỗ trống',
+                                    hintText: 'Không bắt buộc',
+                                    labelStyle: TextStyle(color: AppTheme.getTextSecondaryColor(context)),
+                                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                                  ),
+                                  style: TextStyle(color: AppTheme.getTextPrimaryColor(context)),
+                                  maxLines: 2,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    }),
+                    const SizedBox(height: 8),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: Text('Hủy', style: TextStyle(color: AppTheme.primaryColor)),
+                        ),
+                        const SizedBox(width: 8),
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppTheme.primaryColor,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          ),
+                          onPressed: () async {
+                            final title = titleController.text.trim();
+                            final content = contentController.text.trim();
+                            final difficulty = selectedDifficulty.trim();
+                            final hint = hintController.text.trim();
+
+                            if (title.isEmpty || content.isEmpty || difficulty.isEmpty) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Vui lòng điền đầy đủ thông tin bắt buộc')),
+                              );
+                              return;
+                            }
+
+                            if (blankRows.isEmpty) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Bạn cần thêm ít nhất một chỗ trống')),
+                              );
+                              return;
+                            }
+
+                            for (final row in blankRows) {
+                              if (row.answerController.text.trim().isEmpty) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Đáp án đúng của từng chỗ trống không được để trống')),
+                                );
+                                return;
+                              }
+                            }
+
+                            try {
+                              final blanks = _serializeFillBlankRows(blankRows);
+                              if (isEditing) {
+                                await AdminService.updateFillBlankExercise(
+                                  id: id,
+                                  title: title,
+                                  content: content,
+                                  difficulty: difficulty,
+                                  hint: hint.isEmpty ? null : hint,
+                                  blanks: blanks,
+                                );
+                              } else {
+                                await AdminService.createFillBlankExercise(
+                                  id: DateTime.now().millisecondsSinceEpoch.toString(),
+                                  title: title,
+                                  content: content,
+                                  difficulty: difficulty,
+                                  hint: hint.isEmpty ? null : hint,
+                                  blanks: blanks,
+                                );
+                              }
+
+                              if (mounted) Navigator.pop(context);
+                              _loadAll();
+                              if (mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      isEditing ? 'Đã cập nhật bài tập' : 'Tạo bài tập thành công',
+                                    ),
+                                  ),
+                                );
+                              }
+                            } catch (e) {
+                              if (mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('Lỗi: $e')),
+                                );
+                              }
+                            }
+                          },
+                          child: Text(isEditing ? 'Lưu thay đổi' : 'Tạo bài tập'),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    } finally {
+      titleController.dispose();
+      contentController.dispose();
+      hintController.dispose();
+      for (final row in blankRows) {
+        row.dispose();
+      }
+    }
+  }
+
   void _editUserDialog(Map<String, dynamic> user) {
     final email = user['email']?.toString() ?? '';
     final currentName = user['name']?.toString() ?? user['display_name']?.toString() ?? '';
@@ -119,6 +494,15 @@ class _AdminScreenState extends State<AdminScreen> {
     final codeSampleController = TextEditingController(text: lesson.codeSample);
     final expectedOutputController = TextEditingController(text: lesson.expectedOutput);
     final orderController = TextEditingController(text: lesson.order.toString());
+    final quizDifficultyController = TextEditingController(
+      text: _quizzes.firstWhere(
+        (quiz) => quiz['id']?.toString() == lesson.id,
+        orElse: () => const <String, dynamic>{},
+      )['difficulty']?.toString() ?? 'Cơ bản',
+    );
+    final quizQuestionsController = TextEditingController(
+      text: jsonEncode(lesson.quiz.map((question) => question.toMap()).toList()),
+    );
 
     showDialog(
       context: context,
@@ -177,6 +561,54 @@ class _AdminScreenState extends State<AdminScreen> {
                 ),
                 style: TextStyle(color: AppTheme.getTextPrimaryColor(context)),
               ),
+              const SizedBox(height: 16),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'Trắc nghiệm',
+                  style: TextStyle(
+                    color: AppTheme.getTextPrimaryColor(context),
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              DropdownButtonFormField<String>(
+                value: quizDifficultyController.text.isNotEmpty
+                    ? quizDifficultyController.text
+                    : 'Cơ bản',
+                decoration: InputDecoration(
+                  labelText: 'Độ khó trắc nghiệm',
+                  labelStyle: TextStyle(color: AppTheme.getTextSecondaryColor(context)),
+                ),
+                dropdownColor: AppTheme.getSurfaceColor(context),
+                items: const ['Cơ bản', 'Trung bình', 'Nâng cao']
+                    .map((difficulty) => DropdownMenuItem(
+                          value: difficulty,
+                          child: Text(difficulty),
+                        ))
+                    .toList(),
+                onChanged: (value) {
+                  if (value != null) {
+                    quizDifficultyController.text = value;
+                  }
+                },
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: quizQuestionsController,
+                maxLines: 8,
+                decoration: InputDecoration(
+                  labelText: 'Câu hỏi trắc nghiệm (JSON)',
+                  hintText: '[{"questionText":"2+2 bằng?","options":["3","4"],"correctAnswerIndex":1}]',
+                  labelStyle: TextStyle(color: AppTheme.getTextSecondaryColor(context)),
+                ),
+                style: TextStyle(
+                  color: AppTheme.getTextPrimaryColor(context),
+                  fontFamily: 'monospace',
+                  fontSize: 12,
+                ),
+              ),
             ],
           ),
         ),
@@ -188,17 +620,27 @@ class _AdminScreenState extends State<AdminScreen> {
           TextButton(
             onPressed: () async {
               try {
+                final parsedQuiz = _parseQuestionsJson(quizQuestionsController.text);
                 final updated = Lesson(
                   id: lesson.id,
                   title: titleController.text.trim(),
                   content: contentController.text.trim(),
                   codeSample: codeSampleController.text.trim(),
                   expectedOutput: expectedOutputController.text.trim(),
-                  quiz: lesson.quiz,
+                  quiz: parsedQuiz,
                   exercises: lesson.exercises,
                   order: int.tryParse(orderController.text) ?? 0,
                 );
                 await AdminService.updateLesson(lesson.id, updated);
+                await _syncQuizListWithLesson(
+                  lessonId: lesson.id,
+                  title: titleController.text.trim(),
+                  description: contentController.text.trim(),
+                  difficulty: quizDifficultyController.text.trim().isEmpty
+                      ? 'Cơ bản'
+                      : quizDifficultyController.text.trim(),
+                  quiz: parsedQuiz,
+                );
                 if (mounted) Navigator.pop(context);
                 _loadAll();
                 if (mounted) {
@@ -218,243 +660,11 @@ class _AdminScreenState extends State<AdminScreen> {
   }
 
   void _editExerciseDialog(DartExercise exercise) {
-    final titleController = TextEditingController(text: exercise.title);
-    final descriptionController = TextEditingController(text: exercise.description);
-    final difficultyController = TextEditingController(text: exercise.difficulty);
-    final hintController = TextEditingController(text: exercise.hint ?? '');
-    final timeLimitController = TextEditingController(text: exercise.timeLimit.toString());
-    final inputFormatController = TextEditingController(text: exercise.inputFormat);
-    final outputFormatController = TextEditingController(text: exercise.outputFormat);
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: AppTheme.getSurfaceColor(context),
-        title: Text('Sửa bài tập code', style: TextStyle(color: AppTheme.getTextPrimaryColor(context))),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: titleController,
-                decoration: InputDecoration(
-                  labelText: 'Tiêu đề',
-                  labelStyle: TextStyle(color: AppTheme.getTextSecondaryColor(context)),
-                ),
-                style: TextStyle(color: AppTheme.getTextPrimaryColor(context)),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: descriptionController,
-                maxLines: 3,
-                decoration: InputDecoration(
-                  labelText: 'Mô tả',
-                  labelStyle: TextStyle(color: AppTheme.getTextSecondaryColor(context)),
-                ),
-                style: TextStyle(color: AppTheme.getTextPrimaryColor(context)),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: difficultyController,
-                decoration: InputDecoration(
-                  labelText: 'Độ khó',
-                  labelStyle: TextStyle(color: AppTheme.getTextSecondaryColor(context)),
-                ),
-                style: TextStyle(color: AppTheme.getTextPrimaryColor(context)),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: inputFormatController,
-                maxLines: 2,
-                decoration: InputDecoration(
-                  labelText: 'Định dạng input',
-                  labelStyle: TextStyle(color: AppTheme.getTextSecondaryColor(context)),
-                ),
-                style: TextStyle(color: AppTheme.getTextPrimaryColor(context)),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: outputFormatController,
-                maxLines: 2,
-                decoration: InputDecoration(
-                  labelText: 'Định dạng output',
-                  labelStyle: TextStyle(color: AppTheme.getTextSecondaryColor(context)),
-                ),
-                style: TextStyle(color: AppTheme.getTextPrimaryColor(context)),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: hintController,
-                maxLines: 2,
-                decoration: InputDecoration(
-                  labelText: 'Gợi ý',
-                  labelStyle: TextStyle(color: AppTheme.getTextSecondaryColor(context)),
-                ),
-                style: TextStyle(color: AppTheme.getTextPrimaryColor(context)),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: timeLimitController,
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(
-                  labelText: 'Giới hạn thời gian (giây)',
-                  labelStyle: TextStyle(color: AppTheme.getTextSecondaryColor(context)),
-                ),
-                style: TextStyle(color: AppTheme.getTextPrimaryColor(context)),
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('Hủy', style: TextStyle(color: AppTheme.primaryColor)),
-          ),
-          TextButton(
-            onPressed: () async {
-              try {
-                final updated = DartExercise(
-                  id: exercise.id,
-                  title: titleController.text.trim(),
-                  description: descriptionController.text.trim(),
-                  inputFormat: inputFormatController.text.trim(),
-                  outputFormat: outputFormatController.text.trim(),
-                  difficulty: difficultyController.text.trim(),
-                  hint: hintController.text.trim(),
-                  timeLimit: int.tryParse(timeLimitController.text) ?? exercise.timeLimit,
-                  testCases: exercise.testCases,
-                );
-                await AdminService.updateExercise(exercise.id, updated);
-                if (mounted) Navigator.pop(context);
-                _loadAll();
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Đã cập nhật bài tập')));
-                }
-              } catch (e) {
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Lỗi: $e')));
-                }
-              }
-            },
-            child: Text('Lưu', style: TextStyle(color: AppTheme.primaryColor)),
-          ),
-        ],
-      ),
-    );
+    _openExerciseDialog(exercise: exercise);
   }
 
   void _editFillBlankDialog(Map<String, dynamic> exercise) {
-    final id = exercise['id']?.toString() ?? '';
-    final titleController = TextEditingController(text: exercise['title']?.toString() ?? '');
-    final contentController = TextEditingController(text: exercise['content']?.toString() ?? '');
-    final difficultyController = TextEditingController(text: exercise['difficulty']?.toString() ?? '');
-    final hintController = TextEditingController(text: exercise['hint']?.toString() ?? '');
-    final blanksController = TextEditingController(
-      text: exercise['blanks'] != null ? json.encode(exercise['blanks']) : '[]',
-    );
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: AppTheme.getSurfaceColor(context),
-        title: Text('Sửa bài tập điền chỗ trống', style: TextStyle(color: AppTheme.getTextPrimaryColor(context))),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: titleController,
-                decoration: InputDecoration(
-                  labelText: 'Tiêu đề',
-                  labelStyle: TextStyle(color: AppTheme.getTextSecondaryColor(context)),
-                ),
-                style: TextStyle(color: AppTheme.getTextPrimaryColor(context)),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: contentController,
-                maxLines: 5,
-                decoration: InputDecoration(
-                  labelText: 'Nội dung',
-                  labelStyle: TextStyle(color: AppTheme.getTextSecondaryColor(context)),
-                ),
-                style: TextStyle(color: AppTheme.getTextPrimaryColor(context)),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: difficultyController,
-                decoration: InputDecoration(
-                  labelText: 'Độ khó',
-                  labelStyle: TextStyle(color: AppTheme.getTextSecondaryColor(context)),
-                ),
-                style: TextStyle(color: AppTheme.getTextPrimaryColor(context)),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: hintController,
-                maxLines: 2,
-                decoration: InputDecoration(
-                  labelText: 'Gợi ý',
-                  labelStyle: TextStyle(color: AppTheme.getTextSecondaryColor(context)),
-                ),
-                style: TextStyle(color: AppTheme.getTextPrimaryColor(context)),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: blanksController,
-                maxLines: 4,
-                decoration: InputDecoration(
-                  labelText: 'Đáp án (JSON)',
-                  hintText: '[{"position":0,"answer":"..."}]',
-                  labelStyle: TextStyle(color: AppTheme.getTextSecondaryColor(context)),
-                ),
-                style: TextStyle(color: AppTheme.getTextPrimaryColor(context), fontFamily: 'monospace', fontSize: 12),
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('Hủy', style: TextStyle(color: AppTheme.primaryColor)),
-          ),
-          TextButton(
-            onPressed: () async {
-              if (id.isEmpty) return;
-              List<Map<String, dynamic>> parsedBlanks = [];
-              try {
-                final blanksList = json.decode(blanksController.text) as List;
-                parsedBlanks = blanksList.cast<Map<String, dynamic>>();
-              } catch (_) {
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('JSON blanks không hợp lệ')));
-                return;
-              }
-
-              try {
-                await AdminService.updateFillBlankExercise(
-                  id: id,
-                  title: titleController.text.trim(),
-                  content: contentController.text.trim(),
-                  difficulty: difficultyController.text.trim(),
-                  hint: hintController.text.trim().isEmpty ? null : hintController.text.trim(),
-                  blanks: parsedBlanks,
-                );
-                if (mounted) Navigator.pop(context);
-                _loadAll();
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Đã cập nhật bài tập')));
-                }
-              } catch (e) {
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Lỗi: $e')));
-                }
-              }
-            },
-            child: Text('Lưu', style: TextStyle(color: AppTheme.primaryColor)),
-          ),
-        ],
-      ),
-    );
+    _openFillBlankDialog(exercise: exercise);
   }
 
 
@@ -922,367 +1132,401 @@ class _AdminScreenState extends State<AdminScreen> {
   }
 
   Future<void> _createExercise() async {
-    final titleController = TextEditingController();
-    final descriptionController = TextEditingController();
-    final difficultyController = TextEditingController();
-    final inputFormatController = TextEditingController();
-    final outputFormatController = TextEditingController();
-    final hintController = TextEditingController();
-    final timeLimitController = TextEditingController(text: '30');
-    final testCasesController = TextEditingController();
+    await _openExerciseDialog();
+  }
 
-    await showDialog(
-      context: context,
-      builder: (context) => Dialog(
-        backgroundColor: AppTheme.getSurfaceColor(context),
-        child: Container(
-          width: 600,
-          constraints: const BoxConstraints(maxHeight: 750),
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Tạo bài tập code',
-                    style: TextStyle(
+  String _normalizeExerciseDifficulty(String? value) {
+    final normalized = value?.trim().toLowerCase() ?? '';
+    if (normalized == 'cơ bản' || normalized == 'trung bình' || normalized == 'nâng cao') {
+      return normalized;
+    }
+    return 'cơ bản';
+  }
+
+  List<_CodeTestCaseDraftRow> _buildExerciseTestCaseRows(DartExercise? exercise) {
+    final existingCases = exercise?.testCases ?? const <TestCase>[];
+    if (existingCases.isNotEmpty) {
+      return existingCases
+          .map(
+            (testCase) => _CodeTestCaseDraftRow(
+              input: testCase.input,
+              output: testCase.expectedOutput,
+            ),
+          )
+          .toList();
+    }
+    return [_CodeTestCaseDraftRow()];
+  }
+
+  List<Map<String, dynamic>> _serializeExerciseTestCases(List<_CodeTestCaseDraftRow> rows) {
+    return rows.asMap().entries.map((entry) {
+      final row = entry.value;
+      return {
+        'input': row.inputController.text.trim(),
+        'output': row.outputController.text.trim(),
+      };
+    }).toList();
+  }
+
+  Future<void> _openExerciseDialog({DartExercise? exercise}) async {
+    final isEditing = exercise != null;
+    final id = exercise?.id ?? '';
+    final titleController = TextEditingController(text: exercise?.title ?? '');
+    final descriptionController = TextEditingController(text: exercise?.description ?? '');
+    final inputFormatController = TextEditingController(text: exercise?.inputFormat ?? '');
+    final outputFormatController = TextEditingController(text: exercise?.outputFormat ?? '');
+    final hintController = TextEditingController(text: exercise?.hint ?? '');
+    final timeLimitController = TextEditingController(text: (exercise?.timeLimit ?? 30).toString());
+    String selectedDifficulty = _normalizeExerciseDifficulty(exercise?.difficulty);
+    final testCaseRows = _buildExerciseTestCaseRows(exercise);
+
+    try {
+      await showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => StatefulBuilder(
+          builder: (context, setDialogState) => Dialog(
+            backgroundColor: AppTheme.getSurfaceColor(context),
+            child: Container(
+              width: 860,
+              constraints: const BoxConstraints(maxHeight: 900),
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      isEditing ? 'Sửa bài tập code' : 'Tạo bài tập code',
+                      style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
-                        color: AppTheme.getTextPrimaryColor(context))),
-                const SizedBox(height: 16),
-
-                TextField(
-                  controller: titleController,
-                  decoration: InputDecoration(
-                    labelText: 'Tiêu đề *',
-                    prefixIcon: Icon(Icons.title, color: AppTheme.primaryColor),
-                    labelStyle: TextStyle(color: AppTheme.getTextSecondaryColor(context)),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                  ),
-                  style: TextStyle(color: AppTheme.getTextPrimaryColor(context)),
-                ),
-                const SizedBox(height: 12),
-
-                TextField(
-                  controller: descriptionController,
-                  decoration: InputDecoration(
-                    labelText: 'Mô tả *',
-                    prefixIcon: Icon(Icons.description, color: AppTheme.primaryColor),
-                    labelStyle: TextStyle(color: AppTheme.getTextSecondaryColor(context)),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                  ),
-                  style: TextStyle(color: AppTheme.getTextPrimaryColor(context)),
-                  maxLines: 3,
-                ),
-                const SizedBox(height: 12),
-
-                TextField(
-                  controller: difficultyController,
-                  decoration: InputDecoration(
-                    labelText: 'Độ khó *',
-                    prefixIcon:
-                        Icon(Icons.trending_up, color: AppTheme.primaryColor),
-                    labelStyle: TextStyle(color: AppTheme.getTextSecondaryColor(context)),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                  ),
-                  style: TextStyle(color: AppTheme.getTextPrimaryColor(context)),
-                ),
-                const SizedBox(height: 12),
-
-                TextField(
-                  controller: inputFormatController,
-                  decoration: InputDecoration(
-                    labelText: 'Định dạng input *',
-                    prefixIcon: Icon(Icons.input, color: AppTheme.primaryColor),
-                    labelStyle: TextStyle(color: AppTheme.getTextSecondaryColor(context)),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                  ),
-                  style: TextStyle(color: AppTheme.getTextPrimaryColor(context)),
-                  maxLines: 2,
-                ),
-                const SizedBox(height: 12),
-
-                TextField(
-                  controller: outputFormatController,
-                  decoration: InputDecoration(
-                    labelText: 'Định dạng output *',
-                    prefixIcon: Icon(Icons.output, color: AppTheme.primaryColor),
-                    labelStyle: TextStyle(color: AppTheme.getTextSecondaryColor(context)),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                  ),
-                  style: TextStyle(color: AppTheme.getTextPrimaryColor(context)),
-                  maxLines: 2,
-                ),
-                const SizedBox(height: 12),
-
-                TextField(
-                  controller: hintController,
-                  decoration: InputDecoration(
-                    labelText: 'Gợi ý',
-                    prefixIcon:
-                        Icon(Icons.lightbulb, color: AppTheme.primaryColor),
-                    labelStyle: TextStyle(color: AppTheme.getTextSecondaryColor(context)),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                  ),
-                  style: TextStyle(color: AppTheme.getTextPrimaryColor(context)),
-                  maxLines: 2,
-                ),
-                const SizedBox(height: 12),
-
-                TextField(
-                  controller: timeLimitController,
-                  keyboardType: TextInputType.number,
-                  decoration: InputDecoration(
-                    labelText: 'Giới hạn thời gian (giây)',
-                    prefixIcon:
-                        Icon(Icons.timer, color: AppTheme.primaryColor),
-                    labelStyle: TextStyle(color: AppTheme.getTextSecondaryColor(context)),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                  ),
-                  style: TextStyle(color: AppTheme.getTextPrimaryColor(context)),
-                ),
-                const SizedBox(height: 12),
-
-                TextField(
-                  controller: testCasesController,
-                  decoration: InputDecoration(
-                    labelText: 'Test cases (JSON)',
-                    hintText: '[{"input":"...", "output":"..."}]',
-                    prefixIcon: Icon(Icons.check_circle,
-                        color: AppTheme.primaryColor),
-                    labelStyle: TextStyle(color: AppTheme.getTextSecondaryColor(context)),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                  ),
-                  style: TextStyle(color: AppTheme.getTextPrimaryColor(context)),
-                  maxLines: 5,
-                ),
-
-                const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: Text('Hủy',
-                          style: TextStyle(color: AppTheme.primaryColor)),
-                    ),
-                    const SizedBox(width: 8),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppTheme.primaryColor,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 24, vertical: 12),
+                        color: AppTheme.getTextPrimaryColor(context),
                       ),
-                      onPressed: () async {
-                        try {
-                          await AdminService.createExercise(
-                            titleController.text.trim(),
-                            descriptionController.text.trim(),
-                            difficultyController.text.trim(),
-                            inputFormatController.text.trim(),
-                            outputFormatController.text.trim(),
-                            testCasesController.text,
-                            hint:
-                                hintController.text.trim().isNotEmpty ? hintController.text.trim() : null,
-                            timeLimit:
-                                int.tryParse(timeLimitController.text) ?? 30,
-                          );
-                          if (mounted) Navigator.pop(context);
-                          _loadAll();
-                          if (mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Tạo bài tập thành công')),
-                            );
-                          }
-                        } catch (e) {
-                          if (mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Lỗi: $e')),
-                            );
-                          }
-                        }
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: titleController,
+                      decoration: InputDecoration(
+                        labelText: 'Tiêu đề *',
+                        prefixIcon: Icon(Icons.title, color: AppTheme.primaryColor),
+                        labelStyle: TextStyle(color: AppTheme.getTextSecondaryColor(context)),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      style: TextStyle(color: AppTheme.getTextPrimaryColor(context)),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: descriptionController,
+                      decoration: InputDecoration(
+                        labelText: 'Mô tả *',
+                        prefixIcon: Icon(Icons.description, color: AppTheme.primaryColor),
+                        labelStyle: TextStyle(color: AppTheme.getTextSecondaryColor(context)),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      style: TextStyle(color: AppTheme.getTextPrimaryColor(context)),
+                      maxLines: 3,
+                    ),
+                    const SizedBox(height: 12),
+                    DropdownButtonFormField<String>(
+                      value: selectedDifficulty,
+                      decoration: InputDecoration(
+                        labelText: 'Độ khó *',
+                        prefixIcon: Icon(Icons.trending_up, color: AppTheme.primaryColor),
+                        labelStyle: TextStyle(color: AppTheme.getTextSecondaryColor(context)),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      dropdownColor: AppTheme.getSurfaceColor(context),
+                      items: const ['cơ bản', 'trung bình', 'nâng cao']
+                          .map(
+                            (difficulty) => DropdownMenuItem(
+                              value: difficulty,
+                              child: Text(difficulty),
+                            ),
+                          )
+                          .toList(),
+                      onChanged: (value) {
+                        if (value == null) return;
+                        setDialogState(() {
+                          selectedDifficulty = value;
+                        });
                       },
-                      child: const Text('Tạo bài tập'),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: inputFormatController,
+                      decoration: InputDecoration(
+                        labelText: 'Định dạng input *',
+                        prefixIcon: Icon(Icons.input, color: AppTheme.primaryColor),
+                        labelStyle: TextStyle(color: AppTheme.getTextSecondaryColor(context)),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      style: TextStyle(color: AppTheme.getTextPrimaryColor(context)),
+                      maxLines: 2,
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: outputFormatController,
+                      decoration: InputDecoration(
+                        labelText: 'Định dạng output *',
+                        prefixIcon: Icon(Icons.output, color: AppTheme.primaryColor),
+                        labelStyle: TextStyle(color: AppTheme.getTextSecondaryColor(context)),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      style: TextStyle(color: AppTheme.getTextPrimaryColor(context)),
+                      maxLines: 2,
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: hintController,
+                      decoration: InputDecoration(
+                        labelText: 'Gợi ý',
+                        hintText: 'Không bắt buộc',
+                        prefixIcon: Icon(Icons.lightbulb, color: AppTheme.primaryColor),
+                        labelStyle: TextStyle(color: AppTheme.getTextSecondaryColor(context)),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      style: TextStyle(color: AppTheme.getTextPrimaryColor(context)),
+                      maxLines: 2,
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: timeLimitController,
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(
+                        labelText: 'Giới hạn thời gian (giây)',
+                        prefixIcon: Icon(Icons.timer, color: AppTheme.primaryColor),
+                        labelStyle: TextStyle(color: AppTheme.getTextSecondaryColor(context)),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      style: TextStyle(color: AppTheme.getTextPrimaryColor(context)),
+                    ),
+                    const SizedBox(height: 20),
+                    Row(
+                      children: [
+                        Text(
+                          'Test cases',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.getTextPrimaryColor(context),
+                          ),
+                        ),
+                        const Spacer(),
+                        TextButton.icon(
+                          onPressed: () {
+                            setDialogState(() {
+                              testCaseRows.add(_CodeTestCaseDraftRow());
+                            });
+                          },
+                          icon: const Icon(Icons.add),
+                          label: const Text('Thêm test case'),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Mỗi test case gồm input và output mong đợi. Các test case này sẽ được dùng khi chạy kiểm tra bài code.',
+                      style: TextStyle(color: AppTheme.getTextSecondaryColor(context)),
+                    ),
+                    const SizedBox(height: 12),
+                    ...List.generate(testCaseRows.length, (index) {
+                      final row = testCaseRows[index];
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: Card(
+                          color: AppTheme.getSurfaceColor(context),
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            side: BorderSide(
+                              color: AppTheme.getTextSecondaryColor(context).withOpacity(0.18),
+                            ),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Text(
+                                      'Test case ${index + 1}',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w700,
+                                        color: AppTheme.getTextPrimaryColor(context),
+                                      ),
+                                    ),
+                                    const Spacer(),
+                                    if (testCaseRows.length > 1)
+                                      IconButton(
+                                        tooltip: 'Xóa test case',
+                                        onPressed: () {
+                                          setDialogState(() {
+                                            row.dispose();
+                                            testCaseRows.removeAt(index);
+                                          });
+                                        },
+                                        icon: Icon(Icons.delete_outline, color: AppTheme.errorColor),
+                                      ),
+                                  ],
+                                ),
+                                const SizedBox(height: 8),
+                                TextField(
+                                  controller: row.inputController,
+                                  decoration: InputDecoration(
+                                    labelText: 'Input',
+                                    hintText: 'Dữ liệu đầu vào của test case',
+                                    labelStyle: TextStyle(color: AppTheme.getTextSecondaryColor(context)),
+                                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                                  ),
+                                  style: TextStyle(color: AppTheme.getTextPrimaryColor(context)),
+                                  maxLines: 3,
+                                ),
+                                const SizedBox(height: 12),
+                                TextField(
+                                  controller: row.outputController,
+                                  decoration: InputDecoration(
+                                    labelText: 'Output mong đợi',
+                                    hintText: 'Kết quả đúng của test case',
+                                    labelStyle: TextStyle(color: AppTheme.getTextSecondaryColor(context)),
+                                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                                  ),
+                                  style: TextStyle(color: AppTheme.getTextPrimaryColor(context)),
+                                  maxLines: 3,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    }),
+                    const SizedBox(height: 8),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: Text('Hủy', style: TextStyle(color: AppTheme.primaryColor)),
+                        ),
+                        const SizedBox(width: 8),
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppTheme.primaryColor,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          ),
+                          onPressed: () async {
+                            final title = titleController.text.trim();
+                            final description = descriptionController.text.trim();
+                            final inputFormat = inputFormatController.text.trim();
+                            final outputFormat = outputFormatController.text.trim();
+                            final hint = hintController.text.trim();
+                            final timeLimit = int.tryParse(timeLimitController.text.trim()) ?? 30;
+
+                            if (title.isEmpty || description.isEmpty || inputFormat.isEmpty || outputFormat.isEmpty) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Vui lòng nhập đầy đủ tiêu đề, mô tả, input và output')),
+                              );
+                              return;
+                            }
+
+                            if (testCaseRows.isEmpty) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Bạn cần thêm ít nhất một test case')),
+                              );
+                              return;
+                            }
+
+                            for (final row in testCaseRows) {
+                              if (row.inputController.text.trim().isEmpty || row.outputController.text.trim().isEmpty) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Input và output của test case không được để trống')),
+                                );
+                                return;
+                              }
+                            }
+
+                            try {
+                              final testCases = _serializeExerciseTestCases(testCaseRows);
+                              final testCasesJson = jsonEncode(testCases);
+
+                              if (isEditing) {
+                                final updated = DartExercise(
+                                  id: exercise.id,
+                                  title: title,
+                                  description: description,
+                                  inputFormat: inputFormat,
+                                  outputFormat: outputFormat,
+                                  difficulty: selectedDifficulty,
+                                  hint: hint.isEmpty ? null : hint,
+                                  timeLimit: timeLimit,
+                                  testCases: testCaseRows
+                                      .map(
+                                        (row) => TestCase(
+                                          input: row.inputController.text.trim(),
+                                          expectedOutput: row.outputController.text.trim(),
+                                        ),
+                                      )
+                                      .toList(),
+                                );
+                                await AdminService.updateExercise(exercise.id, updated);
+                              } else {
+                                await AdminService.createExercise(
+                                  title,
+                                  description,
+                                  selectedDifficulty,
+                                  inputFormat,
+                                  outputFormat,
+                                  testCasesJson,
+                                  hint: hint.isEmpty ? null : hint,
+                                  timeLimit: timeLimit,
+                                );
+                              }
+
+                              if (mounted) Navigator.pop(context);
+                              _loadAll();
+                              if (mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(isEditing ? 'Đã cập nhật bài tập code' : 'Tạo bài tập code thành công'),
+                                  ),
+                                );
+                              }
+                            } catch (e) {
+                              if (mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('Lỗi: $e')),
+                                );
+                              }
+                            }
+                          },
+                          child: Text(isEditing ? 'Lưu thay đổi' : 'Tạo bài tập'),
+                        ),
+                      ],
                     ),
                   ],
-                )
-              ],
+                ),
+              ),
             ),
           ),
         ),
-      ),
-    );
+      );
+    } finally {
+      titleController.dispose();
+      descriptionController.dispose();
+      inputFormatController.dispose();
+      outputFormatController.dispose();
+      hintController.dispose();
+      timeLimitController.dispose();
+      for (final row in testCaseRows) {
+        row.dispose();
+      }
+    }
   }
 
   Future<void> _createFillBlankExercise() async {
-    final titleController = TextEditingController();
-    final contentController = TextEditingController();
-    final difficultyController = TextEditingController();
-    final hintController = TextEditingController();
-    final blanksController = TextEditingController();
-
-    await showDialog(
-      context: context,
-      builder: (context) => Dialog(
-        backgroundColor: AppTheme.getSurfaceColor(context),
-        child: Container(
-          width: 650,
-          constraints: const BoxConstraints(maxHeight: 800),
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Tạo bài tập điền chỗ trống',
-                    style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: AppTheme.getTextPrimaryColor(context))),
-                const SizedBox(height: 16),
-
-                TextField(
-                  controller: titleController,
-                  decoration: InputDecoration(
-                    labelText: 'Tiêu đề *',
-                    prefixIcon: Icon(Icons.title, color: AppTheme.primaryColor),
-                    labelStyle: TextStyle(color: AppTheme.getTextSecondaryColor(context)),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                  ),
-                  style: TextStyle(color: AppTheme.getTextPrimaryColor(context)),
-                ),
-                const SizedBox(height: 12),
-
-                TextField(
-                  controller: contentController,
-                  decoration: InputDecoration(
-                    labelText: 'Nội dung *',
-                    hintText:
-                        'Viết nội dung với các blank [____] để chỉ chỗ cần điền',
-                    prefixIcon:
-                        Icon(Icons.description, color: AppTheme.primaryColor),
-                    labelStyle: TextStyle(color: AppTheme.getTextSecondaryColor(context)),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                  ),
-                  style: TextStyle(color: AppTheme.getTextPrimaryColor(context)),
-                  maxLines: 5,
-                ),
-                const SizedBox(height: 12),
-
-                TextField(
-                  controller: difficultyController,
-                  decoration: InputDecoration(
-                    labelText: 'Độ khó *',
-                    prefixIcon:
-                        Icon(Icons.trending_up, color: AppTheme.primaryColor),
-                    labelStyle: TextStyle(color: AppTheme.getTextSecondaryColor(context)),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                  ),
-                  style: TextStyle(color: AppTheme.getTextPrimaryColor(context)),
-                ),
-                const SizedBox(height: 12),
-
-                TextField(
-                  controller: blanksController,
-                  decoration: InputDecoration(
-                    labelText: 'Đáp án (JSON) *',
-                    hintText: '[{"position":0, "answer":"..."}, ...]',
-                    prefixIcon:
-                        Icon(Icons.check_circle, color: AppTheme.primaryColor),
-                    labelStyle: TextStyle(color: AppTheme.getTextSecondaryColor(context)),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                  ),
-                  style: TextStyle(color: AppTheme.getTextPrimaryColor(context)),
-                  maxLines: 4,
-                ),
-                const SizedBox(height: 12),
-
-                TextField(
-                  controller: hintController,
-                  decoration: InputDecoration(
-                    labelText: 'Gợi ý',
-                    prefixIcon:
-                        Icon(Icons.lightbulb, color: AppTheme.primaryColor),
-                    labelStyle: TextStyle(color: AppTheme.getTextSecondaryColor(context)),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                  ),
-                  style: TextStyle(color: AppTheme.getTextPrimaryColor(context)),
-                  maxLines: 3,
-                ),
-
-                const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: Text('Hủy',
-                          style: TextStyle(color: AppTheme.primaryColor)),
-                    ),
-                    const SizedBox(width: 8),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppTheme.primaryColor,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 24, vertical: 12),
-                      ),
-                      onPressed: () async {
-                        if (titleController.text.trim().isEmpty ||
-                            contentController.text.trim().isEmpty ||
-                            difficultyController.text.trim().isEmpty ||
-                            blanksController.text.trim().isEmpty) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                                content: Text('Vui lòng điền đầy đủ thông tin bắt buộc')),
-                          );
-                          return;
-                        }
-
-                        List<Map<String, dynamic>> parsedBlanks = [];
-                        try {
-                          final blanksList =
-                              json.decode(blanksController.text.trim()) as List;
-                          parsedBlanks =
-                              blanksList.cast<Map<String, dynamic>>();
-                        } catch (_) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                                content: Text('Format JSON không hợp lệ cho blanks')),
-                          );
-                          return;
-                        }
-
-                        try {
-                          await AdminService.createFillBlankExercise(
-                            id: DateTime.now().millisecondsSinceEpoch.toString(),
-                            title: titleController.text.trim(),
-                            content: contentController.text.trim(),
-                            difficulty: difficultyController.text.trim(),
-                            hint: hintController.text.trim().isEmpty
-                                ? null
-                                : hintController.text.trim(),
-                            blanks: parsedBlanks,
-                          );
-                          if (mounted) Navigator.pop(context);
-                          _loadAll();
-                        } catch (e) {
-                          if (mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Lỗi: $e')),
-                            );
-                          }
-                        }
-                      },
-                      child: const Text('Tạo bài tập'),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
+    await _openFillBlankDialog();
   }
 
   Future<void> _deleteUser(String userEmail) async {
@@ -1769,5 +2013,33 @@ Widget _buildLessonsAndQuizTab() {
   return _buildLessonsTab(); // hoặc _buildQuizTab()
 }
 
+}
+
+class _FillBlankDraftRow {
+  _FillBlankDraftRow({String answer = '', String hint = ''})
+      : answerController = TextEditingController(text: answer),
+        hintController = TextEditingController(text: hint);
+
+  final TextEditingController answerController;
+  final TextEditingController hintController;
+
+  void dispose() {
+    answerController.dispose();
+    hintController.dispose();
+  }
+}
+
+class _CodeTestCaseDraftRow {
+  _CodeTestCaseDraftRow({String input = '', String output = ''})
+      : inputController = TextEditingController(text: input),
+        outputController = TextEditingController(text: output);
+
+  final TextEditingController inputController;
+  final TextEditingController outputController;
+
+  void dispose() {
+    inputController.dispose();
+    outputController.dispose();
+  }
 }
 

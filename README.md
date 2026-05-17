@@ -16,7 +16,6 @@
 - **Bài học có cấu trúc**: Lý thuyết chi tiết với code mẫu
 - **Chạy code trực tiếp**: Xem kết quả ngay trong bài học
 - **Theo dõi tiến độ**: Lưu trạng thái hoàn thành bài học
-- **Lộ trình học rõ ràng**: Danh sách bài học tuần tự
 
 ### 💻 **Bài Tập Đa Dạng**
 - **Bài tập code**: Viết code giải quyết bài toán với kiểm tra test case
@@ -33,7 +32,6 @@
 ### 👨‍💼 **Quản Trị Viên**
 - **Quản lý người dùng**: Xem, chỉnh sửa, xóa tài khoản
 - **Quản lý nội dung**: Thêm/sửa bài học, bài tập
-- **Thống kê tiến độ**: Theo dõi học tập của học sinh
 
 ### 📱 **Giao Diện Thân Thiện**
 - **Responsive Design**: Hoạt động trên mọi kích thước màn hình

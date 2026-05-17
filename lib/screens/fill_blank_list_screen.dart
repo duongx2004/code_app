@@ -17,11 +17,19 @@ class _FillBlankListScreenState extends State<FillBlankListScreen> {
   List<Map<String, dynamic>> _exercises = [];
   bool _isLoading = true;
   String? _error;
+  final TextEditingController _searchController = TextEditingController();
   String selectedDifficulty = 'Tất cả';
   @override
   void initState() {
     super.initState();
     _loadExercises();
+    _searchController.addListener(() => setState(() {}));
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadExercises() async {
@@ -80,12 +88,19 @@ class _FillBlankListScreenState extends State<FillBlankListScreen> {
   }
 
   List<Map<String, dynamic>> get _filteredExercises {
-    if (selectedDifficulty == 'Tất cả') {
-      return _exercises;
-    }
-    return _exercises.where((exercise) =>
-      exercise['difficulty']?.toString().toLowerCase() == selectedDifficulty.toLowerCase()
-    ).toList();
+    final query = _searchController.text.toLowerCase().trim();
+    return _exercises.where((exercise) {
+      final title = exercise['title']?.toString().toLowerCase() ?? '';
+      final description = exercise['description']?.toString().toLowerCase() ?? '';
+      final content = exercise['content']?.toString().toLowerCase() ?? '';
+      final matchesSearch = query.isEmpty ||
+          title.contains(query) ||
+          description.contains(query) ||
+          content.contains(query);
+      final matchesDifficulty = selectedDifficulty == 'Tất cả' ||
+          exercise['difficulty']?.toString().toLowerCase() == selectedDifficulty.toLowerCase();
+      return matchesSearch && matchesDifficulty;
+    }).toList();
   }
 
   @override
@@ -101,7 +116,13 @@ class _FillBlankListScreenState extends State<FillBlankListScreen> {
           children: [
             Icon(Icons.edit, color: AppTheme.primaryColor),
             const SizedBox(width: 8),
-            const Text('Điền vào chỗ trống'),
+            Expanded(
+              child: Text(
+                'Điền vào chỗ trống',
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(),
+              ),
+            ),
           ],
         ),
         backgroundColor: Colors.white,
@@ -133,12 +154,12 @@ class _FillBlankListScreenState extends State<FillBlankListScreen> {
         child: SafeArea(
           child: Center(
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 980),
+                constraints: const BoxConstraints(minWidth: 400, maxWidth: 980),
               child: Column(
                 children: [
             Container(
-              margin: const EdgeInsets.fromLTRB(16, 10, 16, 8),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              margin: const EdgeInsets.fromLTRB(8, 8, 8, 6),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(16),
@@ -220,8 +241,8 @@ class _FillBlankListScreenState extends State<FillBlankListScreen> {
 
             // Filter bar
             Container(
-              margin: const EdgeInsets.symmetric(horizontal: 16),
-              padding: const EdgeInsets.all(14),
+              margin: const EdgeInsets.symmetric(horizontal: 8),
+              padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(16),
@@ -236,6 +257,11 @@ class _FillBlankListScreenState extends State<FillBlankListScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  CustomSearchBar(
+                    controller: _searchController,
+                    hintText: 'Tìm kiếm bài điền chỗ trống...',
+                  ),
+                  const SizedBox(height: 12),
                   const Text(
                     'Độ khó',
                     style: TextStyle(
@@ -278,7 +304,7 @@ class _FillBlankListScreenState extends State<FillBlankListScreen> {
                                   showCheckmark: false,
                                   selectedColor: AppTheme.primaryColor,
                                   backgroundColor: Colors.transparent,
-                                  side: BorderSide.none,
+                                  side: BorderSide(color: AppTheme.primaryColor.withOpacity(0.16)),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(10),
                                   ),
@@ -312,9 +338,13 @@ class _FillBlankListScreenState extends State<FillBlankListScreen> {
                             children: [
                               Icon(Icons.error, size: 64, color: Colors.red[400]),
                               const SizedBox(height: 16),
-                              Text(
-                                'Lỗi: $_error',
-                                style: TextStyle(color: AppTheme.textSecondaryLight),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 12),
+                                child: Text(
+                                  'Lỗi: $_error',
+                                  style: TextStyle(color: AppTheme.textSecondaryLight),
+                                  textAlign: TextAlign.center,
+                                ),
                               ),
                               const SizedBox(height: 16),
                               Container(

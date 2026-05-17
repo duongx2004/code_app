@@ -5,6 +5,7 @@ import 'package:code_app/models/models.dart';
 import 'package:code_app/screens/quiz_detail_screen.dart';
 import 'package:code_app/services/quiz_service.dart';
 import 'package:code_app/services/progress_service.dart';
+import 'package:code_app/services/theme_controller.dart';
 import 'package:code_app/widgets/common_widgets.dart';
 
 class QuizListScreen extends StatefulWidget {
@@ -115,26 +116,45 @@ class _QuizListScreenState extends State<QuizListScreen> {
     final totalCount = quizzes.length;
     final progressValue = totalCount > 0 ? completedCount / totalCount : 0.0;
 
+    final themeController = Provider.of<ThemeController>(context);
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
       appBar: AppBar(
         title: Row(
           children: [
-            Icon(Icons.quiz, color: AppTheme.primaryColor),
+            const Icon(Icons.quiz, color: Colors.white),
             const SizedBox(width: 8),
-            const Text('Trắc nghiệm'),
+            Expanded(
+              child: Text(
+                'Trắc nghiệm',
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(),
+              ),
+            ),
           ],
         ),
         backgroundColor: Colors.white,
-        foregroundColor: AppTheme.primaryColor,
+        foregroundColor: Colors.white,
         elevation: 0,
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: AppTheme.primaryGradient,
+          ),
+        ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.delete_outline),
+            icon: Icon(isDarkMode ? Icons.light_mode : Icons.dark_mode, color: Colors.white),
+            tooltip: isDarkMode ? 'Chuyển sang giao diện sáng' : 'Chuyển sang giao diện tối',
+            onPressed: () => themeController.toggleTheme(isDarkMode),
+          ),
+          IconButton(
+            icon: const Icon(Icons.delete_outline, color: Colors.white),
             tooltip: 'Xóa tiến độ trắc nghiệm',
             onPressed: _clearProgress,
           ),
           IconButton(
-            icon: const Icon(Icons.refresh),
+            icon: const Icon(Icons.refresh, color: Colors.white),
             onPressed: _loadQuizzes,
           ),
         ],
@@ -146,19 +166,19 @@ class _QuizListScreenState extends State<QuizListScreen> {
             end: Alignment.bottomCenter,
             colors: [
               AppTheme.primaryColor.withOpacity(0.05),
-              AppTheme.lightBackground,
+              AppTheme.getBackgroundColor(context),
             ],
           ),
         ),
         child: SafeArea(
           child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 980),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(minWidth: 400, maxWidth: 980),
               child: Column(
                 children: [
-            Container(
-              margin: const EdgeInsets.fromLTRB(16, 10, 16, 8),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  Container(
+                    margin: const EdgeInsets.fromLTRB(8, 8, 8, 6),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(14),
@@ -239,9 +259,9 @@ class _QuizListScreenState extends State<QuizListScreen> {
             const SizedBox(height: 4),
 
             // Search and filters
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 16),
-              padding: const EdgeInsets.all(14),
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 8),
+              padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(16),
@@ -284,7 +304,7 @@ class _QuizListScreenState extends State<QuizListScreen> {
             // Quizzes list
             Expanded(
               child: Container(
-                margin: const EdgeInsets.symmetric(horizontal: 16),
+                margin: const EdgeInsets.symmetric(horizontal: 8),
                 child: isLoading
                     ? const Center(
                         child: CircularProgressIndicator(
@@ -353,7 +373,7 @@ class _QuizListScreenState extends State<QuizListScreen> {
                                         );
                                       },
                                       child: Padding(
-                                        padding: const EdgeInsets.all(16),
+                                        padding: const EdgeInsets.all(12),
                                         child: Row(
                                           children: [
                                             Container(

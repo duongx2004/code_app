@@ -25,7 +25,13 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             Icon(Icons.school, color: AppTheme.primaryColor),
             const SizedBox(width: 8),
-            const Text('Trang chủ'),
+            Expanded(
+              child: Text(
+                'Trang chủ',
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(),
+              ),
+            ),
           ],
         ),
         backgroundColor: Colors.white,
@@ -107,20 +113,32 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                             ),
                           ),
-                          Container(
-                            decoration: BoxDecoration(
-                              color: AppTheme.primaryColor.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: IconButton(
-                              icon: Icon(Icons.delete_sweep, color: AppTheme.primaryColor, size: 20),
-                              onPressed: () => _clearLearningProgress(progressService),
-                              tooltip: 'Xóa tiến độ lộ trình học',
-                              constraints: const BoxConstraints(
-                                minWidth: 40,
-                                minHeight: 40,
+                          ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 110),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: AppTheme.primaryColor.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(8),
                               ),
-                              padding: const EdgeInsets.all(8),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  IconButton(
+                                    icon: Icon(Icons.refresh, color: AppTheme.primaryColor, size: 20),
+                                    onPressed: () => setState(() {}),
+                                    tooltip: 'Tải lại',
+                                    constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                                    padding: const EdgeInsets.all(6),
+                                  ),
+                                  IconButton(
+                                    icon: Icon(Icons.delete_sweep, color: AppTheme.primaryColor, size: 20),
+                                    onPressed: () => _clearLearningProgress(progressService),
+                                    tooltip: 'Xóa tiến độ lộ trình học',
+                                    constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                                    padding: const EdgeInsets.all(6),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ],
@@ -136,30 +154,44 @@ class _HomeScreenState extends State<HomeScreen> {
                       if (quizCompletedCount > 0) ...[
                         const SizedBox(height: 12),
                         Container(
-                          padding: const EdgeInsets.all(12),
+                          padding: const EdgeInsets.all(14),
                           decoration: BoxDecoration(
-                            color: AppTheme.primaryColor.withOpacity(0.05),
-                            borderRadius: BorderRadius.circular(8),
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppTheme.primaryColor.withOpacity(0.08),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
                             border: Border.all(
-                              color: AppTheme.primaryColor.withOpacity(0.2),
+                              color: AppTheme.primaryColor.withOpacity(0.12),
                               width: 1,
                             ),
                           ),
                           child: Row(
                             children: [
-                              Icon(
-                                Icons.quiz,
-                                color: AppTheme.primaryColor,
-                                size: 20,
+                              Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: AppTheme.primaryColor.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Icon(
+                                  Icons.quiz,
+                                  color: AppTheme.primaryColor,
+                                  size: 20,
+                                ),
                               ),
                               const SizedBox(width: 8),
                               Expanded(
                                 child: Text(
                                   'Đã hoàn thành $quizCompletedCount bài trắc nghiệm',
                                   style: const TextStyle(
-                                    fontSize: 14,
+                                    fontSize: 15,
                                     color: AppTheme.textPrimaryLight,
-                                    fontWeight: FontWeight.w500,
+                                    fontWeight: FontWeight.w600,
                                   ),
                                 ),
                               ),

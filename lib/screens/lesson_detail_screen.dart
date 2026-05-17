@@ -41,7 +41,13 @@ class _LessonDetailScreenState extends State<LessonDetailScreen> {
           children: [
             Icon(Icons.code, color: AppTheme.primaryColor),
             const SizedBox(width: 8),
-            const Text('CodeLearn'),
+            Expanded(
+              child: Text(
+                'CodeLearn',
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(),
+              ),
+            ),
           ],
         ),
         backgroundColor: Colors.white,
