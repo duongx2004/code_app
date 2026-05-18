@@ -28,41 +28,44 @@ class _CodeEditorWidgetState extends State<CodeEditorWidget> {
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
-        color: AppTheme.codeBackground,
-        border: Border.all(color: const Color(0xFF334155)),
+        color: Colors.black,
+        border: Border.all(color: AppTheme.primaryColor.withOpacity(0.45)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
-            blurRadius: 10,
+            color: AppTheme.primaryColor.withOpacity(0.12),
+            blurRadius: 12,
             offset: const Offset(0, 4),
           ),
         ],
       ),
-      child: TextField(
-        controller: widget.controller,
-        maxLines: widget.maxLines,
-        minLines: widget.minLines,
-        keyboardType: TextInputType.multiline,
-        textInputAction: TextInputAction.newline,
-        style: const TextStyle(
-          fontFamily: 'Courier',
-          fontSize: 13.5,
-          height: 1.45,
-          color: AppTheme.codeText,
-        ),
-        decoration: InputDecoration(
-          hintText: widget.hintText,
-          border: InputBorder.none,
-          contentPadding: EdgeInsets.symmetric(
-            horizontal: isCompact ? 10 : 12,
-            vertical: isCompact ? 10 : 12,
-          ),
-          filled: true,
-          fillColor: Colors.transparent,
-          hintStyle: const TextStyle(
-            color: Color(0xFF94A3B8),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: TextField(
+          controller: widget.controller,
+          maxLines: widget.maxLines,
+          minLines: widget.minLines,
+          keyboardType: TextInputType.multiline,
+          textInputAction: TextInputAction.newline,
+          style: const TextStyle(
             fontFamily: 'Courier',
-            fontSize: 13,
+            fontSize: 13.5,
+            height: 1.45,
+            color: AppTheme.codeText,
+          ),
+          decoration: InputDecoration(
+            hintText: widget.hintText,
+            border: InputBorder.none,
+            contentPadding: EdgeInsets.symmetric(
+              horizontal: isCompact ? 10 : 12,
+              vertical: isCompact ? 10 : 12,
+            ),
+            filled: true,
+            fillColor: Colors.transparent,
+            hintStyle: const TextStyle(
+              color: Color(0xFF94A3B8),
+              fontFamily: 'Courier',
+              fontSize: 13,
+            ),
           ),
         ),
       ),

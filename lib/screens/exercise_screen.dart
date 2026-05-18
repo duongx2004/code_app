@@ -112,35 +112,6 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
     final progressValue = totalCount > 0 ? completedCount / totalCount : 0.0;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Row(
-          children: [
-            Icon(Icons.code, color: AppTheme.primaryColor),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                'Bài tập',
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(),
-              ),
-            ),
-          ],
-        ),
-        backgroundColor: Colors.white,
-        foregroundColor: AppTheme.primaryColor,
-        elevation: 0,
-        actions: [
-          IconButton(
-            icon: Icon(Icons.delete_sweep, color: AppTheme.primaryColor),
-            onPressed: _clearProgress,
-            tooltip: 'Xóa tiến độ',
-          ),
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _loadExercises,
-          ),
-        ],
-      ),
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -155,7 +126,7 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
         child: SafeArea(
           child: Center(
             child: ConstrainedBox(
-                constraints: const BoxConstraints(minWidth: 400, maxWidth: 980),
+              constraints: const BoxConstraints(maxWidth: 980),
               child: Column(
                 children: [
             Container(
@@ -198,15 +169,23 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
                             fontWeight: FontWeight.bold,
                             color: AppTheme.textPrimaryLight,
                           ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                       const SizedBox(width: 8),
-                      Text(
-                        '$completedCount/$totalCount',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                          color: AppTheme.primaryColor,
+                      Flexible(
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.centerRight,
+                          child: Text(
+                            '$completedCount/$totalCount',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              color: AppTheme.primaryColor,
+                            ),
+                          ),
                         ),
                       ),
                     ],

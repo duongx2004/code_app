@@ -169,28 +169,32 @@ class _FillBlankExerciseScreenState extends State<FillBlankExerciseScreen> {
     );
   }
 
+  PreferredSizeWidget _buildAppBar(String title, {List<Widget> actions = const []}) {
+    return AppBar(
+      leading: const BackButton(color: Colors.white),
+      title: Text(title),
+      backgroundColor: Colors.white,
+      foregroundColor: Colors.white,
+      elevation: 0,
+      flexibleSpace: Container(
+        decoration: const BoxDecoration(gradient: AppTheme.primaryGradient),
+      ),
+      actions: actions,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
       return Scaffold(
-        appBar: AppBar(
-          title: const Text('Bài tập điền chỗ trống'),
-          backgroundColor: Colors.white,
-          foregroundColor: AppTheme.primaryColor,
-          elevation: 0,
-        ),
+        appBar: _buildAppBar('Bài tập điền chỗ trống'),
         body: const Center(child: CircularProgressIndicator()),
       );
     }
 
     if (_error != null) {
       return Scaffold(
-        appBar: AppBar(
-          title: const Text('Bài tập điền chỗ trống'),
-          backgroundColor: Colors.white,
-          foregroundColor: AppTheme.primaryColor,
-          elevation: 0,
-        ),
+        appBar: _buildAppBar('Bài tập điền chỗ trống'),
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -221,14 +225,8 @@ class _FillBlankExerciseScreenState extends State<FillBlankExerciseScreen> {
 
     final exercise = _exercise!;
     return Scaffold(
-      appBar: AppBar(
-        title: Text(exercise.title),
-        backgroundColor: Colors.white,
-        foregroundColor: AppTheme.primaryColor,
-        elevation: 0,
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(gradient: AppTheme.primaryGradient),
-        ),
+      appBar: _buildAppBar(
+        exercise.title,
         actions: [
           if (_isCompleted)
             Container(

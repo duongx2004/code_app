@@ -35,20 +35,30 @@ class _LessonDetailScreenState extends State<LessonDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final isCompactAppBar = screenWidth < 560;
+
     return Scaffold(
       appBar: AppBar(
-        title: Row(
-          children: [
-            Icon(Icons.code, color: AppTheme.primaryColor),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
+        titleSpacing: 0,
+        title: FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.centerLeft,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.code, color: AppTheme.primaryColor, size: 22),
+              const SizedBox(width: 8),
+              Text(
                 'CodeLearn',
+                maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(),
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
         backgroundColor: Colors.white,
         foregroundColor: AppTheme.primaryColor,
@@ -57,26 +67,43 @@ class _LessonDetailScreenState extends State<LessonDetailScreen> {
           if (widget.lesson.quiz.isNotEmpty)
             Container(
               margin: const EdgeInsets.only(right: 8),
-              child: ElevatedButton.icon(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => QuizScreen(lesson: widget.lesson),
+              child: isCompactAppBar
+                  ? IconButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => QuizScreen(lesson: widget.lesson),
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.quiz, size: 20),
+                      tooltip: 'Quiz',
+                      style: IconButton.styleFrom(
+                        backgroundColor: AppTheme.primaryColor,
+                        foregroundColor: Colors.white,
+                      ),
+                    )
+                  : ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => QuizScreen(lesson: widget.lesson),
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.quiz, size: 16),
+                      label: const Text('Quiz'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.primaryColor,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      ),
                     ),
-                  );
-                },
-                icon: const Icon(Icons.quiz, size: 16),
-                label: const Text('Quiz'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.primaryColor,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                ),
-              ),
             ),
         ],
       ),

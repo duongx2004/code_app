@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:code_app/theme/app_theme.dart';
 import 'package:code_app/widgets/code_editor.dart';
 import 'package:code_app/services/dart_code_runner.dart';
+import 'package:code_text_field/code_text_field.dart';
+import 'package:highlight/languages/dart.dart';
 
 class PlaygroundScreen extends StatefulWidget {
   const PlaygroundScreen({super.key});
@@ -12,15 +14,23 @@ class PlaygroundScreen extends StatefulWidget {
 
 class _PlaygroundScreenState extends State<PlaygroundScreen>
     with AutomaticKeepAliveClientMixin {
-  late TextEditingController _codeController;
+  late CodeController _codeController;
   String _output = '';
   bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
-    _codeController = TextEditingController(
+    _codeController = CodeController(
       text: "void main() {\n  print('Chào mừng bạn đến với Dart!');\n  int a = 10;\n  int b = 20;\n  print('Tổng của \$a và \$b là: \${a + b}');\n}",
+      language: dart,
+      patternMap: {
+        r"\b(print|int|void|double|String|var|final|const|if|else|for|while|return|class|new|true|false)\b": const TextStyle(color: Color(0xFF61AFEF)),
+        r"'.*?'": const TextStyle(color: Color(0xFF98C379)),
+        r'".*?"': const TextStyle(color: Color(0xFF98C379)),
+        r"\b\d+\b": const TextStyle(color: Color(0xFFB5CEA8)),
+        r"//.*": const TextStyle(color: Color(0xFF6A9955)),
+      },
     );
   }
 
@@ -88,34 +98,6 @@ class _PlaygroundScreenState extends State<PlaygroundScreen>
     super.build(context);
 
     return Scaffold(
-      appBar: AppBar(
-        title: Row(
-          children: [
-            Icon(Icons.code, color: AppTheme.primaryColor),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                'CodeLearn',
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(),
-              ),
-            ),
-          ],
-        ),
-        backgroundColor: Colors.white,
-        foregroundColor: AppTheme.primaryColor,
-        elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.clear),
-            onPressed: () {
-              _codeController.clear();
-              setState(() => _output = '');
-            },
-            tooltip: 'Xóa code',
-          ),
-        ],
-      ),
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -129,8 +111,8 @@ class _PlaygroundScreenState extends State<PlaygroundScreen>
         ),
         child: SafeArea(
           child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(minWidth: 400, maxWidth: 1100),
+              child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 1100),
               child: Column(
                 children: [
                   Container(
@@ -147,55 +129,118 @@ class _PlaygroundScreenState extends State<PlaygroundScreen>
                         ),
                       ],
                     ),
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(6),
-                          decoration: BoxDecoration(
-                            color: AppTheme.primaryColor.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Icon(Icons.code, color: AppTheme.primaryColor, size: 20),
-                        ),
-                        const SizedBox(width: 10),
-                        const Expanded(
-                          child: Text(
-                            'Sân chơi Dart',
-                            style: TextStyle(
-                              fontSize: 19,
-                              fontWeight: FontWeight.bold,
-                              color: AppTheme.textPrimaryLight,
-                            ),
-                          ),
-                        ),
-                        Container(
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        final isCompactHeader = constraints.maxWidth < 560;
+                        final runButton = Container(
                           decoration: BoxDecoration(
                             gradient: AppTheme.buttonGradient,
                             borderRadius: BorderRadius.circular(10),
                           ),
-                          child: ElevatedButton.icon(
-                            onPressed: _isLoading ? null : _runCode,
-                            icon: _isLoading
-                                ? const SizedBox(
-                                    width: 16,
-                                    height: 16,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          child: isCompactHeader
+                              ? IconButton(
+                                  onPressed: _isLoading ? null : _runCode,
+                                  icon: _isLoading
+                                      ? const SizedBox(
+                                          width: 16,
+                                          height: 16,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                          ),
+                                        )
+                                      : const Icon(Icons.play_arrow, size: 18, color: Colors.white),
+                                  tooltip: 'Chạy code',
+                                )
+                              : ElevatedButton.icon(
+                                  onPressed: _isLoading ? null : _runCode,
+                                  icon: _isLoading
+                                      ? const SizedBox(
+                                          width: 16,
+                                          height: 16,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                          ),
+                                        )
+                                      : const Icon(Icons.play_arrow, size: 16),
+                                  label: Text(_isLoading ? 'Đang chạy...' : 'Chạy code'),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.transparent,
+                                    shadowColor: Colors.transparent,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
                                     ),
-                                  )
-                                : const Icon(Icons.play_arrow, size: 16),
-                            label: Text(_isLoading ? 'Đang chạy...' : 'Chạy code'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.transparent,
-                              shadowColor: Colors.transparent,
-                              shape: RoundedRectangleBorder(
+                                  ),
+                                ),
+                        );
+
+                        if (isCompactHeader) {
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(6),
+                                    decoration: BoxDecoration(
+                                      color: AppTheme.primaryColor.withOpacity(0.1),
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: Icon(Icons.code, color: AppTheme.primaryColor, size: 20),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  const Expanded(
+                                    child: Text(
+                                      'Sân chơi Dart',
+                                      style: TextStyle(
+                                        fontSize: 19,
+                                        fontWeight: FontWeight.bold,
+                                        color: AppTheme.textPrimaryLight,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 10),
+                              Align(
+                                alignment: Alignment.centerRight,
+                                child: runButton,
+                              ),
+                            ],
+                          );
+                        }
+
+                        return Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: BoxDecoration(
+                                color: AppTheme.primaryColor.withOpacity(0.1),
                                 borderRadius: BorderRadius.circular(10),
                               ),
+                              child: Icon(Icons.code, color: AppTheme.primaryColor, size: 20),
                             ),
-                          ),
-                        ),
-                      ],
+                            const SizedBox(width: 10),
+                            const Expanded(
+                              child: Text(
+                                'Sân chơi Dart',
+                                style: TextStyle(
+                                  fontSize: 19,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppTheme.textPrimaryLight,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            runButton,
+                          ],
+                        );
+                      },
                     ),
                   ),
                   Expanded(
@@ -261,11 +306,15 @@ class _PlaygroundScreenState extends State<PlaygroundScreen>
               children: [
                 Icon(Icons.edit, color: AppTheme.primaryColor),
                 SizedBox(width: 8),
-                Text(
-                  'Trình soạn thảo code',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: AppTheme.textPrimaryLight,
+                Expanded(
+                  child: Text(
+                    'Trình soạn thảo code',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.textPrimaryLight,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ],
@@ -310,11 +359,15 @@ class _PlaygroundScreenState extends State<PlaygroundScreen>
               children: [
                 Icon(Icons.terminal, color: AppTheme.primaryColor),
                 SizedBox(width: 8),
-                Text(
-                  'Kết quả',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: AppTheme.textPrimaryLight,
+                Expanded(
+                  child: Text(
+                    'Kết quả',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.textPrimaryLight,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ],

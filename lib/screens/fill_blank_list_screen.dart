@@ -111,35 +111,6 @@ class _FillBlankListScreenState extends State<FillBlankListScreen> {
     final progressValue = totalCount > 0 ? completedCount / totalCount : 0.0;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Row(
-          children: [
-            Icon(Icons.edit, color: AppTheme.primaryColor),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                'Điền vào chỗ trống',
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(),
-              ),
-            ),
-          ],
-        ),
-        backgroundColor: Colors.white,
-        foregroundColor: AppTheme.primaryColor,
-        elevation: 0,
-        actions: [
-          IconButton(
-            icon: Icon(Icons.delete_sweep, color: AppTheme.primaryColor),
-            onPressed: _clearProgress,
-            tooltip: 'Xóa tiến độ',
-          ),
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _loadExercises,
-          ),
-        ],
-      ),
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -154,7 +125,7 @@ class _FillBlankListScreenState extends State<FillBlankListScreen> {
         child: SafeArea(
           child: Center(
             child: ConstrainedBox(
-                constraints: const BoxConstraints(minWidth: 400, maxWidth: 980),
+              constraints: const BoxConstraints(maxWidth: 980),
               child: Column(
                 children: [
             Container(
@@ -197,15 +168,23 @@ class _FillBlankListScreenState extends State<FillBlankListScreen> {
                             fontWeight: FontWeight.bold,
                             color: AppTheme.textPrimaryLight,
                           ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                       const SizedBox(width: 8),
-                      Text(
-                        '$completedCount/$totalCount',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                          color: AppTheme.primaryColor,
+                      Flexible(
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.centerRight,
+                          child: Text(
+                            '$completedCount/$totalCount',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              color: AppTheme.primaryColor,
+                            ),
+                          ),
                         ),
                       ),
                     ],
@@ -278,40 +257,34 @@ class _FillBlankListScreenState extends State<FillBlankListScreen> {
                       color: AppTheme.primaryColor.withOpacity(0.07),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: Row(
+                    child: Wrap(
+                      spacing: 6,
+                      runSpacing: 6,
                       children: ['Tất cả', 'Cơ bản', 'Trung bình', 'Nâng cao']
                           .map(
-                            (option) => Expanded(
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 2),
-                                child: ChoiceChip(
-                                  label: Center(
-                                    child: Text(
-                                      option,
-                                      textAlign: TextAlign.center,
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: selectedDifficulty == option
-                                            ? FontWeight.w700
-                                            : FontWeight.w500,
-                                        color: selectedDifficulty == option
-                                            ? Colors.white
-                                            : AppTheme.primaryColor,
-                                      ),
-                                    ),
-                                  ),
-                                  selected: selectedDifficulty == option,
-                                  showCheckmark: false,
-                                  selectedColor: AppTheme.primaryColor,
-                                  backgroundColor: Colors.transparent,
-                                  side: BorderSide(color: AppTheme.primaryColor.withOpacity(0.16)),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  onSelected: (_) =>
-                                      setState(() => selectedDifficulty = option),
+                            (option) => ChoiceChip(
+                              label: Text(
+                                option,
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: selectedDifficulty == option
+                                      ? FontWeight.w700
+                                      : FontWeight.w500,
+                                  color: selectedDifficulty == option
+                                      ? Colors.white
+                                      : AppTheme.primaryColor,
                                 ),
                               ),
+                              selected: selectedDifficulty == option,
+                              showCheckmark: false,
+                              selectedColor: AppTheme.primaryColor,
+                              backgroundColor: Colors.transparent,
+                              side: BorderSide(color: AppTheme.primaryColor.withOpacity(0.16)),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              onSelected: (_) => setState(() => selectedDifficulty = option),
                             ),
                           )
                           .toList(),

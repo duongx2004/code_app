@@ -185,27 +185,61 @@ class _AdminScreenState extends State<AdminScreen> {
                       maxLines: 3,
                     ),
                     const SizedBox(height: 20),
-                    Row(
-                      children: [
-                        Text(
-                          'Danh sách chỗ trống',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: AppTheme.getTextPrimaryColor(context),
-                          ),
-                        ),
-                        const Spacer(),
-                        TextButton.icon(
-                          onPressed: () {
-                            setDialogState(() {
-                              blankRows.add(_FillBlankDraftRow());
-                            });
-                          },
-                          icon: const Icon(Icons.add),
-                          label: const Text('Thêm chỗ trống'),
-                        ),
-                      ],
+                    LayoutBuilder(
+                      builder: (context, constraints) {
+                        final isCompact = constraints.maxWidth < 520;
+                        if (isCompact) {
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Danh sách chỗ trống',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppTheme.getTextPrimaryColor(context),
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              TextButton.icon(
+                                onPressed: () {
+                                  setDialogState(() {
+                                    blankRows.add(_FillBlankDraftRow());
+                                  });
+                                },
+                                icon: const Icon(Icons.add),
+                                label: const Text('Thêm chỗ trống'),
+                              ),
+                            ],
+                          );
+                        }
+
+                        return Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                'Danh sách chỗ trống',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppTheme.getTextPrimaryColor(context),
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            TextButton.icon(
+                              onPressed: () {
+                                setDialogState(() {
+                                  blankRows.add(_FillBlankDraftRow());
+                                });
+                              },
+                              icon: const Icon(Icons.add),
+                              label: const Text('Thêm chỗ trống'),
+                            ),
+                          ],
+                        );
+                      },
                     ),
                     const SizedBox(height: 12),
                     if (blankRows.isEmpty)
@@ -1301,27 +1335,61 @@ class _AdminScreenState extends State<AdminScreen> {
                       style: TextStyle(color: AppTheme.getTextPrimaryColor(context)),
                     ),
                     const SizedBox(height: 20),
-                    Row(
-                      children: [
-                        Text(
-                          'Test cases',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: AppTheme.getTextPrimaryColor(context),
-                          ),
-                        ),
-                        const Spacer(),
-                        TextButton.icon(
-                          onPressed: () {
-                            setDialogState(() {
-                              testCaseRows.add(_CodeTestCaseDraftRow());
-                            });
-                          },
-                          icon: const Icon(Icons.add),
-                          label: const Text('Thêm test case'),
-                        ),
-                      ],
+                    LayoutBuilder(
+                      builder: (context, constraints) {
+                        final isCompact = constraints.maxWidth < 520;
+                        if (isCompact) {
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Test cases',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppTheme.getTextPrimaryColor(context),
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              TextButton.icon(
+                                onPressed: () {
+                                  setDialogState(() {
+                                    testCaseRows.add(_CodeTestCaseDraftRow());
+                                  });
+                                },
+                                icon: const Icon(Icons.add),
+                                label: const Text('Thêm test case'),
+                              ),
+                            ],
+                          );
+                        }
+
+                        return Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                'Test cases',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppTheme.getTextPrimaryColor(context),
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            TextButton.icon(
+                              onPressed: () {
+                                setDialogState(() {
+                                  testCaseRows.add(_CodeTestCaseDraftRow());
+                                });
+                              },
+                              icon: const Icon(Icons.add),
+                              label: const Text('Thêm test case'),
+                            ),
+                          ],
+                        );
+                      },
                     ),
                     const SizedBox(height: 8),
                     Text(
@@ -1904,12 +1972,14 @@ class _AdminScreenState extends State<AdminScreen> {
     if (_isLoading) {
       return Scaffold(
         appBar: AppBar(
-          title: Row(
-            children: [
-              const Icon(Icons.admin_panel_settings),
-              const SizedBox(width: 12),
-              const Text('Quản trị Hệ thống'),
-            ],
+          title: const Text(
+            'Quản trị Hệ thống',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          leading: BackButton(
+            color: Colors.white,
+            onPressed: () => Navigator.maybePop(context),
           ),
           backgroundColor: AppTheme.primaryColor,
           foregroundColor: Colors.white,
@@ -1922,12 +1992,14 @@ class _AdminScreenState extends State<AdminScreen> {
     if (_error != null) {
       return Scaffold(
         appBar: AppBar(
-          title: Row(
-            children: [
-              const Icon(Icons.admin_panel_settings),
-              const SizedBox(width: 12),
-              const Text('Quản trị Hệ thống'),
-            ],
+          title: const Text(
+            'Quản trị Hệ thống',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          leading: BackButton(
+            color: Colors.white,
+            onPressed: () => Navigator.maybePop(context),
           ),
           backgroundColor: AppTheme.primaryColor,
           foregroundColor: Colors.white,
@@ -1954,12 +2026,14 @@ class _AdminScreenState extends State<AdminScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Row(
-          children: [
-            const Icon(Icons.admin_panel_settings),
-            const SizedBox(width: 12),
-            const Text('Quản trị Hệ thống'),
-          ],
+        title: const Text(
+          'Quản trị Hệ thống',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+        leading: BackButton(
+          color: Colors.white,
+          onPressed: () => Navigator.maybePop(context),
         ),
         backgroundColor: AppTheme.primaryColor,
         foregroundColor: Colors.white,

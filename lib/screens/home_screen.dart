@@ -101,47 +101,102 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        children: [
-                          const Expanded(
-                            child: Text(
-                              'Lộ trình học',
-                              style: TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                                color: AppTheme.textPrimaryLight,
-                              ),
-                            ),
-                          ),
-                          ConstrainedBox(
-                            constraints: const BoxConstraints(maxWidth: 110),
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: AppTheme.primaryColor.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  IconButton(
-                                    icon: Icon(Icons.refresh, color: AppTheme.primaryColor, size: 20),
-                                    onPressed: () => setState(() {}),
-                                    tooltip: 'Tải lại',
-                                    constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
-                                    padding: const EdgeInsets.all(6),
+                      LayoutBuilder(
+                        builder: (context, constraints) {
+                          final isCompact = constraints.maxWidth < 420;
+
+                          if (isCompact) {
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Lộ trình học',
+                                  style: TextStyle(
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppTheme.textPrimaryLight,
                                   ),
-                                  IconButton(
-                                    icon: Icon(Icons.delete_sweep, color: AppTheme.primaryColor, size: 20),
-                                    onPressed: () => _clearLearningProgress(progressService),
-                                    tooltip: 'Xóa tiến độ lộ trình học',
-                                    constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
-                                    padding: const EdgeInsets.all(6),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                const SizedBox(height: 8),
+                                Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: AppTheme.primaryColor.withOpacity(0.1),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        IconButton(
+                                          icon: Icon(Icons.refresh, color: AppTheme.primaryColor, size: 20),
+                                          onPressed: () => setState(() {}),
+                                          tooltip: 'Tải lại',
+                                          constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                                          padding: const EdgeInsets.all(6),
+                                        ),
+                                        IconButton(
+                                          icon: Icon(Icons.delete_sweep, color: AppTheme.primaryColor, size: 20),
+                                          onPressed: () => _clearLearningProgress(progressService),
+                                          tooltip: 'Xóa tiến độ lộ trình học',
+                                          constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                                          padding: const EdgeInsets.all(6),
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                ],
+                                ),
+                              ],
+                            );
+                          }
+
+                          return Row(
+                            children: [
+                              const Expanded(
+                                child: Text(
+                                  'Lộ trình học',
+                                  style: TextStyle(
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppTheme.textPrimaryLight,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
                               ),
-                            ),
-                          ),
-                        ],
+                              ConstrainedBox(
+                                constraints: const BoxConstraints(maxWidth: 110),
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: AppTheme.primaryColor.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      IconButton(
+                                        icon: Icon(Icons.refresh, color: AppTheme.primaryColor, size: 20),
+                                        onPressed: () => setState(() {}),
+                                        tooltip: 'Tải lại',
+                                        constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                                        padding: const EdgeInsets.all(6),
+                                      ),
+                                      IconButton(
+                                        icon: Icon(Icons.delete_sweep, color: AppTheme.primaryColor, size: 20),
+                                        onPressed: () => _clearLearningProgress(progressService),
+                                        tooltip: 'Xóa tiến độ lộ trình học',
+                                        constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                                        padding: const EdgeInsets.all(6),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          );
+                        },
                       ),
                       const SizedBox(height: 16),
                       ProgressCard(
@@ -242,9 +297,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                 },
                                 child: Padding(
                                   padding: const EdgeInsets.all(16),
-                                  child: Row(
-                                    children: [
-                                      Container(
+                                  child: LayoutBuilder(
+                                    builder: (context, constraints) {
+                                      final isCompact = constraints.maxWidth < 420;
+
+                                      final leading = Container(
                                         width: 40,
                                         height: 40,
                                         decoration: BoxDecoration(
@@ -259,50 +316,60 @@ class _HomeScreenState extends State<HomeScreen> {
                                           isCompleted ? Icons.check : Icons.book,
                                           color: Colors.white,
                                         ),
-                                      ),
-                                      const SizedBox(width: 12),
-                                      Expanded(
-                                        child: Column(
+                                      );
+
+                                      final titleRow = Row(
+                                        children: [
+                                          Expanded(
+                                            child: Text(
+                                              lesson.title,
+                                              style: TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.bold,
+                                                color: isCompleted
+                                                    ? AppTheme.textSecondaryLight
+                                                    : AppTheme.textPrimaryLight,
+                                                decoration: isCompleted
+                                                    ? TextDecoration.lineThrough
+                                                    : null,
+                                              ),
+                                              maxLines: 2,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ),
+                                        ],
+                                      );
+
+                                      final quizTag = lesson.quiz.isNotEmpty
+                                          ? Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                              decoration: BoxDecoration(
+                                                color: AppTheme.primaryColor.withOpacity(0.1),
+                                                borderRadius: BorderRadius.circular(12),
+                                              ),
+                                              child: Text(
+                                                '${lesson.quiz.length} câu trắc nghiệm',
+                                                style: TextStyle(
+                                                  color: AppTheme.primaryColor,
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                              ),
+                                            )
+                                          : const SizedBox.shrink();
+
+                                      if (isCompact) {
+                                        return Column(
                                           crossAxisAlignment: CrossAxisAlignment.start,
                                           children: [
                                             Row(
                                               children: [
-                                                if (index == 0) ...[
-                                                  Container(
-                                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                                    decoration: BoxDecoration(
-                                                      color: Colors.orange.withOpacity(0.1),
-                                                      borderRadius: BorderRadius.circular(10),
-                                                    ),
-                                                    child: const Text(
-                                                      'Test',
-                                                      style: TextStyle(
-                                                        color: Colors.orange,
-                                                        fontSize: 10,
-                                                        fontWeight: FontWeight.bold,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                  const SizedBox(width: 8),
-                                                ],
-                                                Expanded(
-                                                  child: Text(
-                                                    lesson.title,
-                                                    style: TextStyle(
-                                                      fontSize: 16,
-                                                      fontWeight: FontWeight.bold,
-                                                      color: isCompleted
-                                                          ? AppTheme.textSecondaryLight
-                                                          : AppTheme.textPrimaryLight,
-                                                      decoration: isCompleted
-                                                          ? TextDecoration.lineThrough
-                                                          : null,
-                                                    ),
-                                                  ),
-                                                ),
+                                                leading,
+                                                const SizedBox(width: 12),
+                                                Expanded(child: titleRow),
                                               ],
                                             ),
-                                            const SizedBox(height: 4),
+                                            const SizedBox(height: 8),
                                             Text(
                                               lesson.content.length > 100
                                                   ? '${lesson.content.substring(0, 100)}...'
@@ -314,33 +381,58 @@ class _HomeScreenState extends State<HomeScreen> {
                                               maxLines: 2,
                                               overflow: TextOverflow.ellipsis,
                                             ),
-                                            if (lesson.quiz.isNotEmpty) ...[
-                                              const SizedBox(height: 8),
-                                              Container(
-                                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                                decoration: BoxDecoration(
-                                                  color: AppTheme.primaryColor.withOpacity(0.1),
-                                                  borderRadius: BorderRadius.circular(12),
-                                                ),
-                                                child: Text(
-                                                  '${lesson.quiz.length} câu trắc nghiệm',
-                                                  style: TextStyle(
-                                                    color: AppTheme.primaryColor,
-                                                    fontSize: 12,
-                                                    fontWeight: FontWeight.w500,
-                                                  ),
-                                                ),
+                                            const SizedBox(height: 8),
+                                            if (lesson.quiz.isNotEmpty) quizTag,
+                                            const SizedBox(height: 8),
+                                            Align(
+                                              alignment: Alignment.centerRight,
+                                              child: Icon(
+                                                Icons.arrow_forward_ios,
+                                                color: AppTheme.primaryColor,
+                                                size: 16,
                                               ),
-                                            ],
+                                            ),
                                           ],
-                                        ),
-                                      ),
-                                      Icon(
-                                        Icons.arrow_forward_ios,
-                                        color: AppTheme.primaryColor,
-                                        size: 16,
-                                      ),
-                                    ],
+                                        );
+                                      }
+
+                                      return Row(
+                                        children: [
+                                          leading,
+                                          const SizedBox(width: 12),
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                titleRow,
+                                                const SizedBox(height: 4),
+                                                Text(
+                                                  lesson.content.length > 100
+                                                      ? '${lesson.content.substring(0, 100)}...'
+                                                      : lesson.content,
+                                                  style: TextStyle(
+                                                    fontSize: 14,
+                                                    color: AppTheme.textSecondaryLight,
+                                                  ),
+                                                  maxLines: 2,
+                                                  overflow: TextOverflow.ellipsis,
+                                                ),
+                                                if (lesson.quiz.isNotEmpty) ...[
+                                                  const SizedBox(height: 8),
+                                                  quizTag,
+                                                ],
+                                              ],
+                                            ),
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Icon(
+                                            Icons.arrow_forward_ios,
+                                            color: AppTheme.primaryColor,
+                                            size: 16,
+                                          ),
+                                        ],
+                                      );
+                                    },
                                   ),
                                 ),
                               ),

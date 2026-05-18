@@ -6,6 +6,8 @@ import 'package:code_app/services/dart_code_runner.dart';
 import 'package:code_app/services/progress_service.dart';
 import 'package:code_app/theme/app_theme.dart';
 import 'package:code_app/widgets/code_editor.dart';
+import 'package:code_text_field/code_text_field.dart';
+import 'package:highlight/languages/dart.dart';
 
 class ExerciseDetailScreen extends StatefulWidget {
   final DartExercise exercise;
@@ -17,7 +19,7 @@ class ExerciseDetailScreen extends StatefulWidget {
 }
 
 class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
-  late TextEditingController codeController;
+  late CodeController codeController;
   String output = '';
   bool isRunning = false;
   int passedTests = 0;
@@ -30,7 +32,16 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
   @override
   void initState() {
     super.initState();
-    codeController = TextEditingController();
+    codeController = CodeController(
+      language: dart,
+      patternMap: {
+        r"\b(print|int|void|double|String|var|final|const|if|else|for|while|return|class|new|true|false)\b": const TextStyle(color: Color(0xFF61AFEF)),
+        r"'.*?'": const TextStyle(color: Color(0xFF98C379)),
+        r'".*?"': const TextStyle(color: Color(0xFF98C379)),
+        r"\b\d+\b": const TextStyle(color: Color(0xFFB5CEA8)),
+        r"//.*": const TextStyle(color: Color(0xFF6A9955)),
+      },
+    );
     totalTests = widget.exercise.testCases.length;
     testResults = List.generate(totalTests, (index) => false);
     _isCompleted = Provider.of<ProgressService>(context, listen: false)
